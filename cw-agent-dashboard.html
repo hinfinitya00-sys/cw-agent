@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CW Agent — CrowdWorks自動化ダッシュボード</title>
+<style>
+  :root {
+    --bg0: #09090d;
+    --bg1: #0f1016;
+    --bg2: #14151e;
+    --bg3: #1a1b28;
+    --border: #252638;
+    --border2: #2e3050;
+    --text: #d8daf0;
+    --text2: #8890b8;
+    --text3: #4a506e;
+    --blue: #4f8ff7;
+    --blue-dim: #1e2d50;
+    --teal: #22d3a4;
+    --teal-dim: #0d2820;
+    --amber: #f5a623;
+    --amber-dim: #2a1f08;
+    --red: #f05c5c;
+    --red-dim: #280f0f;
+    --purple: #a78bfa;
+    --purple-dim: #1e1538;
+    --radius: 8px;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    --font: -apple-system, 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg0);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: var(--bg1);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    height: 52px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--teal);
+    letter-spacing: -0.5px;
+    flex-shrink: 0;
+  }
+  .logo span { color: var(--text3); }
+  .header-stats {
+    display: flex;
+    gap: 16px;
+    margin-left: auto;
+    align-items: center;
+  }
+  .stat-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text2);
+    font-family: var(--font-mono);
+  }
+  .stat-badge .val {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--teal);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* Layout */
+  .layout {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    min-height: calc(100vh - 52px);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    background: var(--bg1);
+    border-right: 1px solid var(--border);
+    padding: 16px 0;
+  }
+  .nav-section {
+    padding: 0 12px;
+    margin-bottom: 20px;
+  }
+  .nav-label {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 0 8px;
+    margin-bottom: 4px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    color: var(--text2);
+    font-size: 13px;
+    transition: all .15s;
+    border: 1px solid transparent;
+    user-select: none;
+  }
+  .nav-item:hover { background: var(--bg2); color: var(--text); }
+  .nav-item.active {
+    background: var(--blue-dim);
+    border-color: var(--border2);
+    color: var(--blue);
+  }
+  .nav-item .icon { font-size: 15px; flex-shrink: 0; }
+  .nav-item .badge {
+    margin-left: auto;
+    background: var(--bg3);
+    color: var(--text2);
+    font-size: 10px;
+    font-family: var(--font-mono);
+    padding: 1px 6px;
+    border-radius: 99px;
+    min-width: 20px;
+    text-align: center;
+  }
+  .nav-item.active .badge { background: var(--blue-dim); color: var(--blue); }
+
+  /* Main */
+  .main {
+    padding: 24px;
+    overflow-y: auto;
+    max-height: calc(100vh - 52px);
+  }
+
+  /* Panels */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Cards */
+  .card {
+    background: var(--bg1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .card-body { padding: 18px; }
+
+  /* Grid helpers */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .mb16 { margin-bottom: 16px; }
+  .mb24 { margin-bottom: 24px; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all .15s;
+    font-family: var(--font);
+    white-space: nowrap;
+  }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-primary {
+    background: var(--blue);
+    color: #fff;
+    border-color: var(--blue);
+  }
+  .btn-primary:hover:not(:disabled) { opacity: .9; }
+  .btn-teal {
+    background: var(--teal);
+    color: #09090d;
+    border-color: var(--teal);
+    font-weight: 600;
+  }
+  .btn-teal:hover:not(:disabled) { opacity: .9; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text2);
+    border-color: var(--border2);
+  }
+  .btn-ghost:hover { background: var(--bg2); color: var(--text); }
+  .btn-danger {
+    background: var(--red-dim);
+    color: var(--red);
+    border-color: transparent;
+  }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+  .btn-xs { padding: 3px 8px; font-size: 11px; border-radius: 4px; }
+
+  /* Form elements */
+  input, textarea, select {
+    background: var(--bg0);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    border-radius: var(--radius);
+    font-family: var(--font);
+    font-size: 13px;
+    padding: 8px 12px;
+    width: 100%;
+    transition: border-color .15s;
+    outline: none;
+  }
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--blue);
+  }
+  textarea { resize: vertical; min-height: 80px; }
+  label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 6px; }
+  .form-group { margin-bottom: 14px; }
+
+  /* Bookmarklet */
+  .bookmarklet-box {
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin: 12px 0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text2);
+    word-break: break-all;
+    line-height: 1.5;
+    position: relative;
+    cursor: pointer;
+  }
+  .copy-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: var(--font);
+  }
+
+  /* Job cards */
+  .job-list { display: flex; flex-direction: column; gap: 10px; }
+  .job-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    transition: border-color .15s;
+    cursor: pointer;
+  }
+  .job-card:hover { border-color: var(--border2); }
+  .job-card.selected { border-color: var(--blue); background: #0e1525; }
+  .job-card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .job-score {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    border: 1.5px solid;
+  }
+  .score-high { background: var(--teal-dim); border-color: var(--teal); color: var(--teal); }
+  .score-mid  { background: var(--amber-dim); border-color: var(--amber); color: var(--amber); }
+  .score-low  { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+  .score-none { background: var(--bg3); border-color: var(--border2); color: var(--text3); }
+  .job-info { flex: 1; min-width: 0; }
+  .job-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .job-meta {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 11px;
+    color: var(--text3);
+  }
+  .meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg3);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text2);
+  }
+  .meta-chip.budget { color: var(--amber); background: var(--amber-dim); }
+  .meta-chip.status-new { color: var(--teal); background: var(--teal-dim); }
+  .meta-chip.status-applied { color: var(--blue); background: var(--blue-dim); }
+  .meta-chip.status-replied { color: var(--amber); background: var(--amber-dim); }
+  .meta-chip.status-delivering { color: var(--purple); background: var(--purple-dim); }
+  .meta-chip.status-done { color: var(--text3); background: var(--bg3); }
+  .job-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  /* Status bar */
+  .status-pipeline {
+    display: flex;
+    gap: 0;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .pipe-step {
+    flex: 1;
+    text-align: center;
+    padding: 12px 8px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .pipe-step:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+  .pipe-step:last-child  { border-radius: 0 var(--radius) var(--radius) 0; }
+  .pipe-step + .pipe-step { border-left: none; }
+  .pipe-step .pipe-count {
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    display: block;
+  }
+  .pipe-step .pipe-label {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 2px;
+  }
+  .pipe-step.highlight { background: var(--teal-dim); border-color: var(--teal); }
+  .pipe-step.highlight .pipe-count { color: var(--teal); }
+  .pipe-step.highlight .pipe-label { color: var(--teal); }
+
+  /* Chat / Application compose */
+  .compose-area {
+    background: var(--bg0);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .compose-header {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .compose-textarea {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    padding: 14px;
+    font-size: 13px;
+    line-height: 1.7;
+    min-height: 160px;
+  }
+  .compose-footer {
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  /* Streaming output */
+  .stream-box {
+    background: var(--bg0);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text);
+    min-height: 100px;
+    white-space: pre-wrap;
+    font-family: var(--font);
+  }
+  .stream-box.streaming { border-color: var(--blue); }
+  .cursor {
+    display: inline-block;
+    width: 8px;
+    height: 14px;
+    background: var(--blue);
+    animation: blink .8s step-end infinite;
+    vertical-align: middle;
+  }
+  @keyframes blink { 50%{opacity:0} }
+
+  /* Alerts */
+  .alert {
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    margin-bottom: 16px;
+    border: 1px solid;
+  }
+  .alert-info { background: var(--blue-dim); border-color: var(--border2); color: var(--blue); }
+  .alert-success { background: var(--teal-dim); border-color: var(--teal); color: var(--teal); }
+  .alert-warn { background: var(--amber-dim); border-color: var(--amber); color: var(--amber); }
+
+  /* Steps */
+  .steps { display: flex; flex-direction: column; gap: 12px; }
+  .step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+  .step-content { flex: 1; }
+  .step-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .step-desc { font-size: 12px; color: var(--text2); line-height: 1.6; }
+
+  /* Delivery panel */
+  .delivery-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 10px;
+  }
+  .delivery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .delivery-title { font-size: 13px; font-weight: 600; }
+  .progress-bar {
+    height: 4px;
+    background: var(--bg3);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 10px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--teal);
+    border-radius: 2px;
+    transition: width .4s;
+  }
+
+  /* Settings */
+  .api-key-input {
+    font-family: var(--font-mono);
+    letter-spacing: 1px;
+  }
+
+  /* Tabs within panel */
+  .tab-row {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .tab-btn {
+    padding: 10px 18px;
+    font-size: 13px;
+    color: var(--text3);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all .15s;
+    user-select: none;
+  }
+  .tab-btn:hover { color: var(--text2); }
+  .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .filter-bar input { width: 200px; flex-shrink: 0; }
+  .filter-chip {
+    padding: 5px 12px;
+    border-radius: 99px;
+    font-size: 12px;
+    cursor: pointer;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    background: transparent;
+    transition: all .15s;
+    user-select: none;
+  }
+  .filter-chip:hover { border-color: var(--blue); color: var(--blue); }
+  .filter-chip.active { border-color: var(--blue); background: var(--blue-dim); color: var(--blue); }
+
+  /* Spinner */
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to{transform:rotate(360deg)} }
+
+  /* Toast */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 12px 20px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    z-index: 9999;
+    display: none;
+    max-width: 300px;
+    animation: fadeIn .2s;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg1);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 24px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .modal-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text3);
+  }
+  .empty-state .empty-icon { font-size: 32px; margin-bottom: 12px; }
+  .empty-state p { font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="logo">CW<span>/</span>Agent</div>
+  <div class="stat-badge"><div class="dot"></div><span>稼働中</span></div>
+  <div class="header-stats">
+    <div class="stat-badge">案件 <span class="val" id="h-total">0</span></div>
+    <div class="stat-badge">応募 <span class="val" id="h-applied">0</span></div>
+    <div class="stat-badge">返信 <span class="val" id="h-replied">0</span></div>
+    <div class="stat-badge">収益 <span class="val" id="h-income">¥0</span></div>
+    <button class="btn btn-ghost btn-sm" onclick="openSettings()">⚙ 設定</button>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="nav-section">
+      <div class="nav-label">メイン</div>
+      <div class="nav-item active" onclick="showPanel('collect')" id="nav-collect">
+        <span class="icon">📥</span> 案件収集
+        <span class="badge" id="badge-collect">0</span>
+      </div>
+      <div class="nav-item" onclick="showPanel('analyze')" id="nav-analyze">
+        <span class="icon">🔍</span> 案件分析
+        <span class="badge" id="badge-analyze">0</span>
+      </div>
+      <div class="nav-item" onclick="showPanel('apply')" id="nav-apply">
+        <span class="icon">✉️</span> 応募管理
+        <span class="badge" id="badge-apply">0</span>
+      </div>
+      <div class="nav-item" onclick="showPanel('deliver')" id="nav-deliver">
+        <span class="icon">📦</span> 納品管理
+        <span class="badge" id="badge-deliver">0</span>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">ツール</div>
+      <div class="nav-item" onclick="showPanel('ai-work')">
+        <span class="icon">🤖</span> AI作業台
+      </div>
+      <div class="nav-item" onclick="showPanel('stats')">
+        <span class="icon">📊</span> 統計
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+
+    <!-- ===== PANEL: 案件収集 ===== -->
+    <div class="panel active" id="panel-collect">
+      <div class="mb24">
+        <h2 style="font-size:16px;font-weight:600;margin-bottom:4px;">案件収集</h2>
+        <p style="color:var(--text2);font-size:12px;">ブックマークレットでCrowdWorksから案件データを取得してください</p>
+      </div>
+
+      <div class="card mb16">
+        <div class="card-header">
+          <span style="font-size:16px;">🔖</span>
+          <span class="card-title">ブックマークレット（ブラウザで実行）</span>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info">
+            以下のブックマークレットをCrowdWorksにログインした状態で実行すると、案件データがクリップボードにコピーされます。
+          </div>
+
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <div class="step-content">
+                <div class="step-title">ブックマークレットをコピー</div>
+                <div class="step-desc">下のコードをクリックするとコピーされます。ブラウザのブックマークに追加してください（URLとして貼り付け）。</div>
+                <div class="bookmarklet-box" id="bookmarklet-code" onclick="copyBookmarklet()">
+                  <span class="copy-badge">クリックでコピー</span>
+                  javascript:(function(){var jobs=[];var cards=document.querySelectorAll('.job_list_item,.job-list-item,[class*="job_offer"]');if(cards.length===0){cards=document.querySelectorAll('article,li.offer');}cards.forEach(function(c){var title=(c.querySelector('h3,h2,.title,.offer_title,[class*="title"]')||{}).innerText||'';var budget=(c.querySelector('[class*="budget"],[class*="price"],[class*="reward"]')||{}).innerText||'';var url=(c.querySelector('a')||{}).href||'';var desc=(c.querySelector('[class*="desc"],[class*="detail"],[class*="body"]')||{}).innerText||'';var category=(c.querySelector('[class*="category"],[class*="tag"]')||{}).innerText||'';if(title){jobs.push({id:Date.now()+Math.random(),title:title.trim(),budget:budget.trim(),url:url,desc:desc.slice(0,500),category:category.trim(),collected_at:new Date().toISOString(),status:'new',score:null});}});if(jobs.length===0){alert('案件が見つかりませんでした。CrowdWorksの案件一覧ページで実行してください。');}else{navigator.clipboard.writeText(JSON.stringify(jobs,null,2)).then(function(){alert(jobs.length+'件の案件をコピーしました！ダッシュボードに貼り付けてください。');});} })();
+                </div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <div class="step-content">
+                <div class="step-title">CrowdWorksで実行</div>
+                <div class="step-desc">CrowdWorksにログインして案件一覧ページ（<a href="https://crowdworks.jp/public/jobs" target="_blank" style="color:var(--blue);">crowdworks.jp/public/jobs</a>）を開き、保存したブックマークをクリックします。</div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <div class="step-content">
+                <div class="step-title">データを貼り付け</div>
+                <div class="step-desc">クリップボードにコピーされたJSONを下のテキストエリアに貼り付けて「インポート」ボタンを押します。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb16">
+        <div class="card-header">
+          <span style="font-size:16px;">📋</span>
+          <span class="card-title">JSONデータの貼り付け</span>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label>ブックマークレットでコピーしたJSONをここに貼り付け</label>
+            <textarea id="paste-area" style="min-height:140px;font-family:var(--font-mono);font-size:11px;" placeholder='[{"title": "記事作成の仕事", "budget": "¥5,000", ...}]'></textarea>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn btn-teal" onclick="importJobs()">📥 インポート</button>
+            <button class="btn btn-ghost" onclick="loadSampleData()">サンプルデータで試す</button>
+            <span id="import-msg" style="font-size:12px;color:var(--teal);"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span style="font-size:16px;">📋</span>
+          <span class="card-title">収集済み案件</span>
+          <div style="margin-left:auto;display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="clearJobs()">🗑 クリア</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="collected-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PANEL: 案件分析 ===== -->
+    <div class="panel" id="panel-analyze">
+      <div class="mb24">
+        <h2 style="font-size:16px;font-weight:600;margin-bottom:4px;">案件分析</h2>
+        <p style="color:var(--text2);font-size:12px;">ClaudeがAIで案件をスコアリングし、あなたに合った仕事を優先表示します</p>
+      </div>
+
+      <div class="card mb16">
+        <div class="card-header">
+          <span style="font-size:16px;">🎯</span>
+          <span class="card-title">スキルプロファイル設定</span>
+        </div>
+        <div class="card-body">
+          <div class="grid-2">
+            <div class="form-group">
+              <label>得意なカテゴリ（Claudeが優先評価します）</label>
+              <textarea id="skill-profile" style="min-height:80px;" placeholder="例：記事・ブログ作成、プログラミング（Python/JavaScript）、翻訳（日英）、データ収集・整理、SEO記事、AI活用した作業など">記事・ライティング・ブログ作成、翻訳（日英）、プログラミング・コーディング（Python、JavaScript、React）、データ入力・リスト作成・調査、AI（Claude）を使ってできる全般的な作業</textarea>
+            </div>
+            <div class="form-group">
+              <label>最低希望単価・条件</label>
+              <textarea id="conditions" style="min-height:80px;" placeholder="例：最低¥3,000以上、短期〜中期の仕事、継続案件歓迎など">最低¥3,000以上、成果物が明確な仕事、期限に余裕のある案件歓迎、Claudeで確実に納品できるもの優先</textarea>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="analyzeAllJobs()">
+            <span id="analyze-spinner"></span>
+            🔍 全案件をAI分析（Claude）
+          </button>
+          <span id="analyze-progress" style="font-size:12px;color:var(--text2);margin-left:12px;"></span>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <input type="text" placeholder="🔍 案件を検索..." oninput="filterJobs()" id="search-input">
+        <div class="filter-chip active" onclick="setFilter('all', this)">すべて</div>
+        <div class="filter-chip" onclick="setFilter('high', this)">◆ 高スコア</div>
+        <div class="filter-chip" onclick="setFilter('writing', this)">✍️ ライティング</div>
+        <div class="filter-chip" onclick="setFilter('dev', this)">💻 プログラミング</div>
+        <div class="filter-chip" onclick="setFilter('trans', this)">🌐 翻訳</div>
+        <div class="filter-chip" onclick="setFilter('data', this)">📊 データ</div>
+      </div>
+
+      <div id="analyze-list" class="job-list"></div>
+    </div>
+
+    <!-- ===== PANEL: 応募管理 ===== -->
+    <div class="panel" id="panel-apply">
+      <div class="mb24">
+        <h2 style="font-size:16px;font-weight:600;margin-bottom:4px;">応募管理</h2>
+        <p style="color:var(--text2);font-size:12px;">Claudeが応募文を生成します。確認してCrowdWorksに貼り付けてください。</p>
+      </div>
+
+      <!-- Pipeline status -->
+      <div class="status-pipeline mb24">
+        <div class="pipe-step">
+          <span class="pipe-count" id="pipe-new">0</span>
+          <div class="pipe-label">未応募</div>
+        </div>
+        <div class="pipe-step highlight">
+          <span class="pipe-count" id="pipe-applied">0</span>
+          <div class="pipe-label">応募済</div>
+        </div>
+        <div class="pipe-step">
+          <span class="pipe-count" id="pipe-replied">0</span>
+          <div class="pipe-label">返信あり</div>
+        </div>
+        <div class="pipe-step">
+          <span class="pipe-count" id="pipe-delivering">0</span>
+          <div class="pipe-label">納品中</div>
+        </div>
+        <div class="pipe-step">
+          <span class="pipe-count" id="pipe-done">0</span>
+          <div class="pipe-label">完了</div>
+        </div>
+      </div>
+
+      <!-- Application composer -->
+      <div class="card mb16">
+        <div class="card-header">
+          <span style="font-size:16px;">✍️</span>
+          <span class="card-title">応募文ジェネレーター</span>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label>案件を選択（スコアの高い順に表示）</label>
+            <select id="job-select" onchange="selectJobForApply()">
+              <option value="">-- 案件を選択 --</option>
+            </select>
+          </div>
+          <div id="selected-job-preview" style="display:none;background:var(--bg0);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:14px;font-size:12px;color:var(--text2);"></div>
+          <div class="form-group">
+            <label>自己PR（任意・毎回変えられます）</label>
+            <textarea id="self-pr" style="min-height:60px;" placeholder="例：AIツール（Claude）を活用した効率的な作業が得意です。品質重視で納期厳守します。">AIツール（Claude）を活用した高品質・高速な作業が得意です。ライティング・翻訳・プログラミング・データ整理など幅広く対応可能。品質・納期を重視してお仕事します。</textarea>
+          </div>
+          <button class="btn btn-primary" onclick="generateApplication()">
+            <span id="gen-spinner"></span>
+            🤖 応募文をAI生成
+          </button>
+        </div>
+      </div>
+
+      <div id="application-output" style="display:none;" class="card mb16">
+        <div class="card-header">
+          <span style="font-size:16px;">📝</span>
+          <span class="card-title">生成された応募文</span>
+          <div style="margin-left:auto;display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="copyApplication()">📋 コピー</button>
+            <button class="btn btn-ghost btn-sm" onclick="generateApplication()">🔄 再生成</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="stream-box" id="app-stream"></div>
+          <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end;">
+            <button class="btn btn-teal" onclick="markAsApplied()">✅ 応募完了としてマーク</button>
+            <a id="cw-link" href="#" target="_blank" class="btn btn-ghost">🔗 CrowdWorksで開く</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Applied jobs list -->
+      <div class="card">
+        <div class="card-header">
+          <span style="font-size:16px;">📋</span>
+          <span class="card-title">応募済み案件</span>
+        </div>
+        <div class="card-body">
+          <div id="applied-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PANEL: 納品管理 ===== -->
+    <div class="panel" id="panel-deliver">
+      <div class="mb24">
+        <h2 style="font-size:16px;font-weight:600;margin-bottom:4px;">納品管理</h2>
+        <p style="color:var(--text2);font-size:12px;">返信のあった案件の作業をClaudeが支援します。</p>
+      </div>
+
+      <div class="card mb16">
+        <div class="card-header">
+          <span style="font-size:16px;">📨</span>
+          <span class="card-title">返信受取・受注登録</span>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label>CrowdWorksからの返信内容を貼り付け</label>
+            <textarea id="reply-content" style="min-height:100px;" placeholder="クライアントからのメッセージを貼り付けてください..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>対象の案件</label>
+            <select id="reply-job-select">
+              <option value="">-- 案件を選択 --</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="registerReply()">📥 受注登録 + AI作業プラン生成</button>
+        </div>
+      </div>
+
+      <div id="delivery-list"></div>
+
+      <!-- AI Work Area -->
+      <div class="card" id="ai-workbench" style="display:none;">
+        <div class="card-header">
+          <span style="font-size:16px;">🤖</span>
+          <span class="card-title">AI作業台</span>
+          <span id="workbench-job-title" style="font-size:12px;color:var(--text2);margin-left:8px;"></span>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label>作業の詳細指示（クライアントの要望・参考情報など）</label>
+            <textarea id="work-instruction" style="min-height:100px;" placeholder="例：「健康食品のSEO記事3000字。ターゲット：30代女性。キーワード：プロテイン、ダイエット」"></textarea>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:16px;">
+            <button class="btn btn-primary" onclick="startAIWork()">🤖 Claude で作業開始</button>
+            <button class="btn btn-ghost" onclick="refineWork()">✨ 改善・リライト</button>
+          </div>
+          <div class="stream-box" id="work-stream" style="min-height:200px;"></div>
+          <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end;">
+            <button class="btn btn-ghost btn-sm" onclick="copyWork()">📋 成果物をコピー</button>
+            <button class="btn btn-teal" onclick="markDelivered()">🎉 納品完了</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PANEL: AI作業台 ===== -->
+    <div class="panel" id="panel-ai-work">
+      <div class="mb24">
+        <h2 style="font-size:16px;font-weight:600;margin-bottom:4px;">AI作業台</h2>
+        <p style="color:var(--text2);font-size:12px;">仕事の内容を入力するとClaudeが納品物を作成します</p>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <div class="form-group">
+            <label>作業タイプ</label>
+            <select id="work-type">
+              <option value="article">📝 記事・ブログ作成</option>
+              <option value="translate">🌐 翻訳（日英・英日）</option>
+              <option value="code">💻 プログラミング・コーディング</option>
+              <option value="data">📊 データ整理・リスト作成</option>
+              <option value="copywriting">📢 コピーライティング・広告文</option>
+              <option value="research">🔎 調査・まとめ</option>
+              <option value="other">🔧 その他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>仕事の詳細・要件</label>
+            <textarea id="free-work-input" style="min-height:140px;" placeholder="クライアントから受け取った仕事の内容をここに貼り付けてください。
+
+例：
+・タイトル：プロテインの選び方記事
+・文字数：3000字
+・ターゲット：30代女性
+・キーワード：プロテイン、ダイエット、痩せる
+・注意事項：医療的な断定表現を避ける"></textarea>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-teal" onclick="doFreeWork()">
+              <span id="free-work-spinner"></span>
+              🤖 Claude で作業する
+            </button>
+            <button class="btn btn-ghost" onclick="document.getElementById('free-work-output').innerHTML='';document.getElementById('free-work-area').style.display='none'">🗑 クリア</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="free-work-area" style="display:none;margin-top:16px;" class="card">
+        <div class="card-header">
+          <span class="card-title">🤖 Claude の成果物</span>
+          <div style="margin-left:auto;display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="copyFreeWork()">📋 コピー</button>
+            <button class="btn btn-ghost btn-sm" onclick="doFreeWork()">🔄 再生成</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="stream-box" id="free-work-output"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PANEL: 統計 ===== -->
+    <div class="panel" id="panel-stats">
+      <div class="mb24">
+        <h2 style="font-size:16px;font-weight:600;margin-bottom:4px;">統計</h2>
+      </div>
+      <div class="grid-3 mb16">
+        <div class="card">
+          <div class="card-body" style="text-align:center;padding:24px;">
+            <div style="font-family:var(--font-mono);font-size:36px;font-weight:700;color:var(--teal);" id="stat-jobs">0</div>
+            <div style="color:var(--text2);font-size:12px;margin-top:4px;">総案件数</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body" style="text-align:center;padding:24px;">
+            <div style="font-family:var(--font-mono);font-size:36px;font-weight:700;color:var(--blue);" id="stat-applied">0</div>
+            <div style="color:var(--text2);font-size:12px;margin-top:4px;">応募数</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body" style="text-align:center;padding:24px;">
+            <div style="font-family:var(--font-mono);font-size:36px;font-weight:700;color:var(--amber);" id="stat-income">¥0</div>
+            <div style="color:var(--text2);font-size:12px;margin-top:4px;">獲得収益</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <div class="modal-title">⚙ 設定</div>
+    <div class="form-group">
+      <label>AIプロバイダー</label>
+      <select id="ai-provider" onchange="updateProviderUI()">
+        <option value="openai">OpenAI（GPT-4o） ← すでにお持ちの場合はこちら</option>
+        <option value="anthropic">Anthropic（Claude）</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label id="api-key-label">OpenAI API Key</label>
+      <input type="password" id="api-key-input" class="api-key-input" placeholder="sk-...">
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;" id="api-key-hint">
+        APIキーは <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--blue);">platform.openai.com/api-keys</a> で確認できます。
+      </div>
+    </div>
+    <div class="form-group">
+      <label>あなたの名前（応募文に使用）</label>
+      <input type="text" id="user-name" placeholder="例：田中 太郎">
+    </div>
+    <div class="form-group">
+      <label>CrowdWorksプロフィールURL</label>
+      <input type="text" id="cw-profile-url" placeholder="https://crowdworks.jp/public/employees/...">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;">
+      <button class="btn btn-ghost" onclick="closeSettings()">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveSettings()">💾 保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ========================
+// State
+// ========================
+let jobs = JSON.parse(localStorage.getItem('cw_jobs') || '[]');
+let settings = JSON.parse(localStorage.getItem('cw_settings') || '{}');
+let currentFilter = 'all';
+let currentApplyJobId = null;
+let currentWorkJobId = null;
+
+// ========================
+// Init
+// ========================
+document.addEventListener('DOMContentLoaded', () => {
+  // Load settings
+  if (settings.provider) document.getElementById('ai-provider').value = settings.provider;
+  if (settings.apiKey) document.getElementById('api-key-input').value = settings.apiKey;
+  if (settings.userName) document.getElementById('user-name').value = settings.userName;
+  if (settings.cwProfileUrl) document.getElementById('cw-profile-url').value = settings.cwProfileUrl;
+  updateProviderUI();
+
+  updateUI();
+
+  // Show API key reminder if not set
+  if (!settings.apiKey) {
+    setTimeout(() => {
+      showToast('⚙ まず設定でAPIキーを入力してください', 4000);
+    }, 1000);
+  }
+});
+
+// ========================
+// Navigation
+// ========================
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  const nav = document.getElementById('nav-' + name);
+  if (nav) nav.classList.add('active');
+
+  // Refresh panel-specific UI
+  if (name === 'analyze') renderAnalyzeList();
+  if (name === 'apply') { updateApplySelect(); renderAppliedList(); updatePipeline(); }
+  if (name === 'deliver') { updateDeliverSelect(); renderDeliveryList(); }
+  if (name === 'stats') updateStats();
+  if (name === 'collect') renderCollectedList();
+}
+
+// ========================
+// Settings
+// ========================
+function openSettings() {
+  document.getElementById('settings-modal').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settings-modal').classList.remove('open');
+}
+function updateProviderUI() {
+  const p = document.getElementById('ai-provider').value;
+  document.getElementById('api-key-label').textContent = p === 'openai' ? 'OpenAI API Key' : 'Anthropic API Key';
+  document.getElementById('api-key-input').placeholder = p === 'openai' ? 'sk-proj-...' : 'sk-ant-...';
+  document.getElementById('api-key-hint').innerHTML = p === 'openai'
+    ? 'APIキーは <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--blue);">platform.openai.com/api-keys</a> で確認できます。'
+    : 'APIキーは <a href="https://console.anthropic.com" target="_blank" style="color:var(--blue);">console.anthropic.com</a> で取得できます。';
+}
+function saveSettings() {
+  settings = {
+    apiKey: document.getElementById('api-key-input').value.trim(),
+    provider: document.getElementById('ai-provider').value || 'openai',
+    userName: document.getElementById('user-name').value.trim(),
+    cwProfileUrl: document.getElementById('cw-profile-url').value.trim(),
+  };
+  localStorage.setItem('cw_settings', JSON.stringify(settings));
+  closeSettings();
+  showToast('✅ 設定を保存しました');
+}
+
+// ========================
+// Jobs - Import
+// ========================
+function importJobs() {
+  const text = document.getElementById('paste-area').value.trim();
+  if (!text) return showToast('⚠ JSONを貼り付けてください');
+  try {
+    const parsed = JSON.parse(text);
+    const arr = Array.isArray(parsed) ? parsed : [parsed];
+    let added = 0;
+    arr.forEach(job => {
+      if (!job.title) return;
+      job.id = job.id || (Date.now() + Math.random()).toString();
+      job.status = job.status || 'new';
+      job.score = job.score || null;
+      job.collected_at = job.collected_at || new Date().toISOString();
+      // Avoid duplicates by URL
+      const exists = jobs.find(j => j.url && j.url === job.url);
+      if (!exists) { jobs.push(job); added++; }
+    });
+    saveJobs();
+    document.getElementById('paste-area').value = '';
+    document.getElementById('import-msg').textContent = `${added}件追加しました（重複除外済）`;
+    updateUI();
+    renderCollectedList();
+    setTimeout(() => { document.getElementById('import-msg').textContent = ''; }, 3000);
+    showToast(`✅ ${added}件の案件をインポートしました`);
+  } catch(e) {
+    showToast('❌ JSONの形式が正しくありません: ' + e.message);
+  }
+}
+
+function loadSampleData() {
+  const samples = [
+    { id: '1', title: 'React.jsでダッシュボードのUI実装をお願いします', budget: '¥50,000〜¥80,000', url: 'https://crowdworks.jp/public/jobs/1', desc: 'Next.js + TypeScriptでの管理画面開発。Tailwindを使ってコンポーネントを実装してほしい。APIとの接続も含む。', category: 'プログラミング', status: 'new', score: null, collected_at: new Date().toISOString() },
+    { id: '2', title: '健康食品通販サイト向けSEO記事（3000字）5本', budget: '¥15,000〜¥25,000', url: 'https://crowdworks.jp/public/jobs/2', desc: 'プロテイン、ダイエット系の記事作成。キーワード選定済み。ガイドラインあり。継続依頼の可能性あり。', category: 'ライティング', status: 'new', score: null, collected_at: new Date().toISOString() },
+    { id: '3', title: '英語メール・文書の日本語翻訳（月10件）', budget: '¥30,000/月', url: 'https://crowdworks.jp/public/jobs/3', desc: 'ビジネス英語の翻訳。技術系ではなく一般ビジネス文書。週2〜3件ペースで継続依頼。', category: '翻訳', status: 'new', score: null, collected_at: new Date().toISOString() },
+    { id: '4', title: 'Pythonスクレイピングスクリプト作成', budget: '¥20,000〜¥40,000', url: 'https://crowdworks.jp/public/jobs/4', desc: 'ECサイトから商品情報をスクレイピングするスクリプト。BeautifulSoup or Playwright使用。定期実行対応。', category: 'プログラミング', status: 'new', score: null, collected_at: new Date().toISOString() },
+    { id: '5', title: '競合調査・市場調査レポート作成', budget: '¥8,000〜¥15,000', url: 'https://crowdworks.jp/public/jobs/5', desc: '美容業界の競合サービス10社を調査してExcelでまとめる。価格、機能、評判など。', category: '調査', status: 'new', score: null, collected_at: new Date().toISOString() },
+    { id: '6', title: '商品説明文作成（Amazon出品用・50件）', budget: '¥25,000', url: 'https://crowdworks.jp/public/jobs/6', desc: 'Amazon商品ページの説明文ライティング。1件あたり300〜500字。キーワード指定あり。', category: 'ライティング', status: 'new', score: null, collected_at: new Date().toISOString() },
+  ];
+  jobs = samples;
+  saveJobs();
+  updateUI();
+  renderCollectedList();
+  showToast('✅ サンプルデータを読み込みました（6件）');
+}
+
+function clearJobs() {
+  if (!confirm('全案件データを削除しますか？')) return;
+  jobs = [];
+  saveJobs();
+  updateUI();
+  renderCollectedList();
+  showToast('🗑 クリアしました');
+}
+
+function saveJobs() {
+  localStorage.setItem('cw_jobs', JSON.stringify(jobs));
+}
+
+// ========================
+// UI Update
+// ========================
+function updateUI() {
+  const total = jobs.length;
+  const analyzed = jobs.filter(j => j.score !== null).length;
+  const applied = jobs.filter(j => ['applied','replied','delivering','done'].includes(j.status)).length;
+  const replied = jobs.filter(j => ['replied','delivering','done'].includes(j.status)).length;
+  const income = jobs.filter(j => j.status === 'done' && j.earnedAmount).reduce((s, j) => s + (j.earnedAmount || 0), 0);
+
+  document.getElementById('h-total').textContent = total;
+  document.getElementById('h-applied').textContent = applied;
+  document.getElementById('h-replied').textContent = replied;
+  document.getElementById('h-income').textContent = '¥' + income.toLocaleString();
+
+  document.getElementById('badge-collect').textContent = total;
+  document.getElementById('badge-analyze').textContent = analyzed;
+  document.getElementById('badge-apply').textContent = applied;
+  document.getElementById('badge-deliver').textContent = replied;
+}
+
+// ========================
+// Collected List
+// ========================
+function renderCollectedList() {
+  const el = document.getElementById('collected-list');
+  if (jobs.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><p>まだ案件がありません。ブックマークレットで収集してください。</p></div>';
+    return;
+  }
+  el.innerHTML = jobs.map(j => `
+    <div class="job-card mb16" style="margin-bottom:8px;">
+      <div class="job-card-top">
+        <div class="job-score ${scoreClass(j.score)}">${j.score !== null ? j.score : '?'}</div>
+        <div class="job-info">
+          <div class="job-title">${esc(j.title)}</div>
+          <div class="job-meta">
+            <span class="meta-chip budget">${esc(j.budget||'金額不明')}</span>
+            <span class="meta-chip">${esc(j.category||'未分類')}</span>
+            <span class="meta-chip status-${j.status}">${statusLabel(j.status)}</span>
+          </div>
+        </div>
+        <div class="job-actions">
+          <button class="btn btn-xs btn-ghost" onclick="deleteJob('${j.id}')">🗑</button>
+          ${j.url ? `<a href="${j.url}" target="_blank" class="btn btn-xs btn-ghost">🔗</a>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ========================
+// Analysis
+// ========================
+function renderAnalyzeList() {
+  const el = document.getElementById('analyze-list');
+  let filtered = [...jobs];
+
+  const search = (document.getElementById('search-input')||{}).value || '';
+  if (search) filtered = filtered.filter(j => j.title.includes(search) || (j.desc||'').includes(search));
+
+  if (currentFilter === 'high') filtered = filtered.filter(j => j.score >= 70);
+  if (currentFilter === 'writing') filtered = filtered.filter(j => (j.category||'').includes('ライティング') || (j.title||'').includes('記事') || (j.title||'').includes('ライティング'));
+  if (currentFilter === 'dev') filtered = filtered.filter(j => (j.category||'').includes('プログラミング') || (j.title||'').includes('開発') || (j.title||'').includes('コーディング'));
+  if (currentFilter === 'trans') filtered = filtered.filter(j => (j.category||'').includes('翻訳'));
+  if (currentFilter === 'data') filtered = filtered.filter(j => (j.category||'').includes('調査') || (j.category||'').includes('データ'));
+
+  // Sort by score desc
+  filtered.sort((a, b) => (b.score || -1) - (a.score || -1));
+
+  if (filtered.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><p>案件が見つかりません。まず収集タブで案件をインポートしてください。</p></div>';
+    return;
+  }
+
+  el.innerHTML = filtered.map(j => `
+    <div class="job-card" onclick="openJobDetail('${j.id}')">
+      <div class="job-card-top">
+        <div class="job-score ${scoreClass(j.score)}">${j.score !== null ? j.score : '?'}</div>
+        <div class="job-info">
+          <div class="job-title">${esc(j.title)}</div>
+          <div class="job-meta">
+            <span class="meta-chip budget">${esc(j.budget||'金額不明')}</span>
+            <span class="meta-chip">${esc(j.category||'未分類')}</span>
+            <span class="meta-chip status-${j.status}">${statusLabel(j.status)}</span>
+            ${j.scoreReason ? `<span class="meta-chip" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(j.scoreReason)}">${esc(j.scoreReason.slice(0,40))}${j.scoreReason.length>40?'…':''}</span>` : ''}
+          </div>
+        </div>
+        <div class="job-actions">
+          ${j.status === 'new' ? `<button class="btn btn-xs btn-primary" onclick="event.stopPropagation();quickApply('${j.id}')">応募文を作る</button>` : ''}
+          ${j.url ? `<a href="${j.url}" target="_blank" onclick="event.stopPropagation()" class="btn btn-xs btn-ghost">🔗</a>` : ''}
+        </div>
+      </div>
+      ${j.analysisSummary ? `<div style="margin-top:8px;font-size:12px;color:var(--text2);padding-left:52px;">${esc(j.analysisSummary)}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+async function analyzeAllJobs() {
+  if (!settings.apiKey) return showToast('⚠ 設定からAPIキーを入力してください');
+  const toAnalyze = jobs.filter(j => j.score === null);
+  if (toAnalyze.length === 0) return showToast('分析済みの案件のみです');
+
+  const spinner = document.getElementById('analyze-spinner');
+  const progress = document.getElementById('analyze-progress');
+  spinner.innerHTML = '<span class="spinner"></span>';
+
+  const profile = document.getElementById('skill-profile').value;
+  const conditions = document.getElementById('conditions').value;
+
+  for (let i = 0; i < toAnalyze.length; i++) {
+    const job = toAnalyze[i];
+    progress.textContent = `分析中 ${i+1}/${toAnalyze.length}`;
+    try {
+      const prompt = `以下の案件を評価してください。
+
+【スキルプロファイル】
+${profile}
+
+【条件】
+${conditions}
+
+【案件情報】
+タイトル：${job.title}
+報酬：${job.budget || '不明'}
+カテゴリ：${job.category || '不明'}
+詳細：${job.desc || '詳細なし'}
+
+以下のJSON形式のみで返答（他のテキスト不要）：
+{"score": 0-100の整数, "reason": "一言評価理由（30字以内）", "summary": "この案件の概要と注意点（60字以内）", "canDeliver": true/false}`;
+
+      const res = await callClaude(prompt, 200);
+      const text = res.replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(text);
+      const idx = jobs.findIndex(j => j.id === job.id);
+      if (idx >= 0) {
+        jobs[idx].score = parsed.score;
+        jobs[idx].scoreReason = parsed.reason;
+        jobs[idx].analysisSummary = parsed.summary;
+        jobs[idx].canDeliver = parsed.canDeliver;
+      }
+    } catch(e) {
+      console.error('Analysis error:', e);
+    }
+    saveJobs();
+    updateUI();
+    renderAnalyzeList();
+    await sleep(500); // Rate limit friendly
+  }
+
+  spinner.innerHTML = '';
+  progress.textContent = `✅ ${toAnalyze.length}件の分析完了`;
+  showToast('✅ 全案件の分析が完了しました');
+}
+
+function setFilter(filter, el) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderAnalyzeList();
+}
+
+function filterJobs() {
+  renderAnalyzeList();
+}
+
+// ========================
+// Apply
+// ========================
+function updateApplySelect() {
+  const sel = document.getElementById('job-select');
+  const sorted = [...jobs].filter(j => j.status === 'new').sort((a,b) => (b.score||0)-(a.score||0));
+  sel.innerHTML = '<option value="">-- 案件を選択 --</option>' + sorted.map(j =>
+    `<option value="${j.id}">${j.score !== null ? '['+j.score+'] ' : ''}${j.title.slice(0,50)} | ${j.budget||'金額不明'}</option>`
+  ).join('');
+}
+
+function selectJobForApply() {
+  const id = document.getElementById('job-select').value;
+  if (!id) {
+    document.getElementById('selected-job-preview').style.display = 'none';
+    return;
+  }
+  const job = jobs.find(j => j.id === id);
+  if (!job) return;
+  currentApplyJobId = id;
+  const preview = document.getElementById('selected-job-preview');
+  preview.style.display = 'block';
+  preview.innerHTML = `<strong>${esc(job.title)}</strong><br>報酬：${esc(job.budget||'不明')} | カテゴリ：${esc(job.category||'不明')}<br>${job.desc ? '<br>' + esc(job.desc.slice(0,200)) + (job.desc.length > 200 ? '...' : '') : ''}`;
+
+  const link = document.getElementById('cw-link');
+  if (link && job.url) link.href = job.url;
+}
+
+async function generateApplication() {
+  if (!settings.apiKey) return showToast('⚠ 設定からAPIキーを入力してください');
+  const id = currentApplyJobId || document.getElementById('job-select').value;
+  if (!id) return showToast('⚠ 案件を選択してください');
+  const job = jobs.find(j => j.id === id);
+  if (!job) return;
+
+  const selfPR = document.getElementById('self-pr').value;
+  const userName = settings.userName || 'フリーランサー';
+
+  const prompt = `あなたはCrowdWorksのフリーランサーです。以下の案件に応募するための効果的な応募文を書いてください。
+
+【案件情報】
+タイトル：${job.title}
+報酬：${job.budget || '不明'}
+詳細：${job.desc || '詳細なし'}
+
+【自己PR・スキル】
+${selfPR}
+
+【名前】${userName}
+
+応募文の条件：
+- 300〜500字程度
+- 丁寧かつ具体的
+- この案件への対応実績・スキルを明示
+- AIツール（Claude）活用で高品質・高速対応できることを自然に盛り込む
+- 「よろしくお願いいたします」で締める
+- 応募文のみ出力（説明不要）`;
+
+  const outputEl = document.getElementById('app-stream');
+  document.getElementById('application-output').style.display = 'block';
+  document.getElementById('gen-spinner').innerHTML = '<span class="spinner"></span>';
+  outputEl.innerHTML = '';
+  outputEl.classList.add('streaming');
+
+  await streamClaude(prompt, outputEl, () => {
+    outputEl.classList.remove('streaming');
+    document.getElementById('gen-spinner').innerHTML = '';
+  });
+}
+
+function copyApplication() {
+  const text = document.getElementById('app-stream').textContent;
+  navigator.clipboard.writeText(text);
+  showToast('📋 応募文をコピーしました');
+}
+
+function markAsApplied() {
+  if (!currentApplyJobId) return;
+  const idx = jobs.findIndex(j => j.id === currentApplyJobId);
+  if (idx >= 0) {
+    jobs[idx].status = 'applied';
+    jobs[idx].appliedAt = new Date().toISOString();
+    jobs[idx].applicationText = document.getElementById('app-stream').textContent;
+  }
+  saveJobs();
+  updateUI();
+  renderAppliedList();
+  updatePipeline();
+  showToast('✅ 応募済みとしてマークしました');
+  document.getElementById('application-output').style.display = 'none';
+}
+
+function quickApply(id) {
+  showPanel('apply');
+  currentApplyJobId = id;
+  updateApplySelect();
+  document.getElementById('job-select').value = id;
+  selectJobForApply();
+  setTimeout(() => generateApplication(), 300);
+}
+
+function renderAppliedList() {
+  const el = document.getElementById('applied-list');
+  const applied = jobs.filter(j => ['applied','replied','delivering','done'].includes(j.status));
+  if (applied.length === 0) {
+    el.innerHTML = '<div class="empty-state"><p>まだ応募済み案件はありません</p></div>';
+    return;
+  }
+  el.innerHTML = applied.map(j => `
+    <div class="job-card" style="margin-bottom:8px;">
+      <div class="job-card-top">
+        <div class="job-score ${scoreClass(j.score)}">${j.score !== null ? j.score : '?'}</div>
+        <div class="job-info">
+          <div class="job-title">${esc(j.title)}</div>
+          <div class="job-meta">
+            <span class="meta-chip budget">${esc(j.budget||'不明')}</span>
+            <span class="meta-chip status-${j.status}">${statusLabel(j.status)}</span>
+          </div>
+        </div>
+        <div class="job-actions">
+          <select onchange="changeStatus('${j.id}', this.value)" style="width:auto;padding:4px 8px;font-size:11px;">
+            <option value="applied" ${j.status==='applied'?'selected':''}>応募済</option>
+            <option value="replied" ${j.status==='replied'?'selected':''}>返信あり</option>
+            <option value="delivering" ${j.status==='delivering'?'selected':''}>納品中</option>
+            <option value="done" ${j.status==='done'?'selected':''}>完了</option>
+          </select>
+          ${j.url ? `<a href="${j.url}" target="_blank" class="btn btn-xs btn-ghost">🔗</a>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updatePipeline() {
+  document.getElementById('pipe-new').textContent = jobs.filter(j => j.status === 'new').length;
+  document.getElementById('pipe-applied').textContent = jobs.filter(j => j.status === 'applied').length;
+  document.getElementById('pipe-replied').textContent = jobs.filter(j => j.status === 'replied').length;
+  document.getElementById('pipe-delivering').textContent = jobs.filter(j => j.status === 'delivering').length;
+  document.getElementById('pipe-done').textContent = jobs.filter(j => j.status === 'done').length;
+}
+
+// ========================
+// Delivery
+// ========================
+function updateDeliverSelect() {
+  const sel = document.getElementById('reply-job-select');
+  const replied = jobs.filter(j => j.status === 'applied');
+  sel.innerHTML = '<option value="">-- 案件を選択 --</option>' + replied.map(j =>
+    `<option value="${j.id}">${j.title.slice(0,50)}</option>`
+  ).join('');
+}
+
+async function registerReply() {
+  const id = document.getElementById('reply-job-select').value;
+  const reply = document.getElementById('reply-content').value;
+  if (!id) return showToast('⚠ 案件を選択してください');
+
+  const idx = jobs.findIndex(j => j.id === id);
+  if (idx < 0) return;
+
+  jobs[idx].status = 'replied';
+  jobs[idx].clientReply = reply;
+  jobs[idx].repliedAt = new Date().toISOString();
+  saveJobs();
+  updateUI();
+  renderDeliveryList();
+  showToast('✅ 受注登録しました');
+  document.getElementById('reply-content').value = '';
+}
+
+function renderDeliveryList() {
+  const el = document.getElementById('delivery-list');
+  const active = jobs.filter(j => ['replied','delivering'].includes(j.status));
+  if (active.length === 0) {
+    el.innerHTML = '<div class="card"><div class="card-body"><div class="empty-state"><div class="empty-icon">📦</div><p>進行中の案件はありません</p></div></div></div>';
+    return;
+  }
+  el.innerHTML = active.map(j => `
+    <div class="delivery-card">
+      <div class="delivery-header">
+        <div>
+          <div class="delivery-title">${esc(j.title)}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:4px;">
+            <span class="meta-chip budget">${esc(j.budget||'不明')}</span>
+            <span class="meta-chip status-${j.status}" style="margin-left:4px;">${statusLabel(j.status)}</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm btn-primary" onclick="openWorkbench('${j.id}')">🤖 AI作業</button>
+          <button class="btn btn-sm btn-ghost" onclick="changeStatus('${j.id}','done')">✅ 完了</button>
+        </div>
+      </div>
+      ${j.clientReply ? `<div style="background:var(--bg3);border-radius:6px;padding:10px;font-size:12px;color:var(--text2);margin-top:8px;">${esc(j.clientReply.slice(0,200))}${j.clientReply.length>200?'...':''}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function openWorkbench(id) {
+  const job = jobs.find(j => j.id === id);
+  if (!job) return;
+  currentWorkJobId = id;
+  document.getElementById('ai-workbench').style.display = 'block';
+  document.getElementById('workbench-job-title').textContent = job.title;
+  if (job.clientReply) {
+    document.getElementById('work-instruction').value = job.clientReply;
+  }
+  document.getElementById('ai-workbench').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function startAIWork() {
+  if (!settings.apiKey) return showToast('⚠ APIキーが必要です');
+  const instruction = document.getElementById('work-instruction').value;
+  if (!instruction) return showToast('⚠ 作業内容を入力してください');
+
+  const job = currentWorkJobId ? jobs.find(j => j.id === currentWorkJobId) : null;
+
+  const prompt = `あなたはプロフェッショナルなフリーランサーです。以下の仕事の成果物を作成してください。
+
+${job ? `【案件タイトル】${job.title}\n` : ''}【作業指示・要件】
+${instruction}
+
+高品質な成果物を実際に作成してください。マークダウン形式で構造化して出力してください。`;
+
+  const outputEl = document.getElementById('work-stream');
+  outputEl.innerHTML = '';
+  outputEl.classList.add('streaming');
+
+  await streamClaude(prompt, outputEl, () => {
+    outputEl.classList.remove('streaming');
+    if (currentWorkJobId) {
+      const idx = jobs.findIndex(j => j.id === currentWorkJobId);
+      if (idx >= 0) { jobs[idx].status = 'delivering'; jobs[idx].workOutput = outputEl.textContent; }
+      saveJobs();
+      updateUI();
+      renderDeliveryList();
+    }
+  });
+}
+
+function copyWork() {
+  const text = document.getElementById('work-stream').textContent;
+  navigator.clipboard.writeText(text);
+  showToast('📋 成果物をコピーしました');
+}
+
+function markDelivered() {
+  if (!currentWorkJobId) return;
+  const idx = jobs.findIndex(j => j.id === currentWorkJobId);
+  if (idx >= 0) { jobs[idx].status = 'done'; jobs[idx].deliveredAt = new Date().toISOString(); }
+  saveJobs();
+  updateUI();
+  renderDeliveryList();
+  document.getElementById('ai-workbench').style.display = 'none';
+  showToast('🎉 納品完了としてマークしました！');
+}
+
+// ========================
+// Free Work
+// ========================
+async function doFreeWork() {
+  if (!settings.apiKey) return showToast('⚠ APIキーが必要です');
+  const type = document.getElementById('work-type').value;
+  const input = document.getElementById('free-work-input').value;
+  if (!input) return showToast('⚠ 作業内容を入力してください');
+
+  const typePrompts = {
+    article: '専門的なライターとして、以下の要件で高品質な記事を作成してください。',
+    translate: '翻訳の専門家として、以下の文章を自然で正確に翻訳してください。',
+    code: 'シニアエンジニアとして、以下の要件でコードを作成してください。コメントも含めてください。',
+    data: 'データアナリストとして、以下の要件でデータを整理・分類してください。',
+    copywriting: 'コピーライターとして、以下の要件で魅力的な文章を作成してください。',
+    research: 'リサーチャーとして、以下の要件で調査結果をまとめてください。',
+    other: '以下の要件の作業を実行してください。',
+  };
+
+  const prompt = `${typePrompts[type] || typePrompts.other}
+
+【要件】
+${input}
+
+高品質な成果物をマークダウン形式で作成してください。`;
+
+  document.getElementById('free-work-area').style.display = 'block';
+  const outputEl = document.getElementById('free-work-output');
+  outputEl.innerHTML = '';
+  outputEl.classList.add('streaming');
+  document.getElementById('free-work-spinner').innerHTML = '<span class="spinner"></span>';
+
+  await streamClaude(prompt, outputEl, () => {
+    outputEl.classList.remove('streaming');
+    document.getElementById('free-work-spinner').innerHTML = '';
+  });
+}
+
+function copyFreeWork() {
+  const text = document.getElementById('free-work-output').textContent;
+  navigator.clipboard.writeText(text);
+  showToast('📋 コピーしました');
+}
+
+// ========================
+// Stats
+// ========================
+function updateStats() {
+  document.getElementById('stat-jobs').textContent = jobs.length;
+  document.getElementById('stat-applied').textContent = jobs.filter(j => ['applied','replied','delivering','done'].includes(j.status)).length;
+  const income = jobs.filter(j => j.status === 'done').reduce((s, j) => s + (j.earnedAmount || 0), 0);
+  document.getElementById('stat-income').textContent = '¥' + income.toLocaleString();
+}
+
+// ========================
+// Utilities
+// ========================
+function changeStatus(id, status) {
+  const idx = jobs.findIndex(j => j.id === id);
+  if (idx >= 0) { jobs[idx].status = status; }
+  saveJobs();
+  updateUI();
+  renderAppliedList();
+  renderDeliveryList();
+  updatePipeline();
+}
+
+function deleteJob(id) {
+  if (!confirm('この案件を削除しますか？')) return;
+  jobs = jobs.filter(j => j.id !== id);
+  saveJobs();
+  updateUI();
+  renderCollectedList();
+}
+
+function openJobDetail(id) {
+  const job = jobs.find(j => j.id === id);
+  if (!job) return;
+  showToast(`${job.title.slice(0,30)} | スコア:${job.score||'未分析'}`);
+}
+
+function scoreClass(score) {
+  if (score === null) return 'score-none';
+  if (score >= 70) return 'score-high';
+  if (score >= 40) return 'score-mid';
+  return 'score-low';
+}
+
+function statusLabel(status) {
+  const map = { new:'新着', applied:'応募済', replied:'返信あり', delivering:'納品中', done:'完了' };
+  return map[status] || status;
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function showToast(msg, duration = 2500) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, duration);
+}
+
+function copyBookmarklet() {
+  const code = document.getElementById('bookmarklet-code').textContent.replace('クリックでコピー', '').trim();
+  navigator.clipboard.writeText(code);
+  showToast('📋 ブックマークレットをコピーしました！');
+}
+
+// ========================
+// AI API（OpenAI / Anthropic 両対応）
+// ========================
+async function callClaude(prompt, maxTokens = 1000) {
+  const provider = settings.provider || 'openai';
+  if (provider === 'openai') {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + settings.apiKey },
+      body: JSON.stringify({ model: 'gpt-4o', max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] }),
+    });
+    if (!res.ok) throw new Error('OpenAI API error: ' + res.status);
+    const data = await res.json();
+    return data.choices[0].message.content;
+  } else {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': settings.apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }] }),
+    });
+    if (!res.ok) throw new Error('Anthropic API error: ' + res.status);
+    const data = await res.json();
+    return data.content.map(c => c.text || '').join('');
+  }
+}
+
+async function streamClaude(prompt, outputEl, onDone) {
+  const provider = settings.provider || 'openai';
+  try {
+    let url, headers, body;
+    if (provider === 'openai') {
+      url = 'https://api.openai.com/v1/chat/completions';
+      headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + settings.apiKey };
+      body = JSON.stringify({ model: 'gpt-4o', max_tokens: 2000, stream: true, messages: [{ role: 'user', content: prompt }] });
+    } else {
+      url = 'https://api.anthropic.com/v1/messages';
+      headers = { 'Content-Type': 'application/json', 'x-api-key': settings.apiKey, 'anthropic-version': '2023-06-01' };
+      body = JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2000, stream: true, messages: [{ role: 'user', content: prompt }] });
+    }
+    const res = await fetch(url, { method: 'POST', headers, body });
+    if (!res.ok) {
+      const err = await res.text();
+      outputEl.textContent = 'エラー: ' + err;
+      if (onDone) onDone();
+      return;
+    }
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let full = '';
+    const cursor = document.createElement('span');
+    cursor.className = 'cursor';
+    outputEl.appendChild(cursor);
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value);
+      for (const line of chunk.split('\n')) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6);
+        if (data === '[DONE]') continue;
+        try {
+          const parsed = JSON.parse(data);
+          let text = '';
+          if (provider === 'openai') {
+            text = parsed.choices?.[0]?.delta?.content || '';
+          } else {
+            text = parsed.type === 'content_block_delta' ? (parsed.delta?.text || '') : '';
+          }
+          if (text) {
+            full += text;
+            outputEl.textContent = full;
+            outputEl.appendChild(cursor);
+            outputEl.scrollTop = outputEl.scrollHeight;
+          }
+        } catch {}
+      }
+    }
+    cursor.remove();
+    if (onDone) onDone();
+  } catch(e) {
+    outputEl.textContent = 'エラー: ' + e.message;
+    if (onDone) onDone();
+  }
+}
+</script>
+</body>
+</html>
