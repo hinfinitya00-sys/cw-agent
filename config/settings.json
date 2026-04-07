@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "targets": {
+    "monthly_income": 1000000,
+    "weekly_hours": 13,
+    "min_hourly_rate": 2500,
+    "min_ai_score": 60
+  },
+  "filters": {
+    "exclude_keywords": ["フル出勤", "雇用契約", "常駐", "週5"],
+    "ai_keywords": ["Claude", "GPT", "ChatGPT", "Midjourney", "Gemini", "Stable Diffusion", "AI", "自動化", "LLM", "機械学習"],
+    "max_weekly_hours": 15
+  },
+  "notifications": {
+    "line_token": "",
+    "web_notifications": true,
+    "notify_new_jobs": true,
+    "notify_milestones": true
+  },
+  "crowdworks": {
+    "api_endpoint": "https://crowdworks.jp/api/v2",
+    "search_keywords": ["Claude API", "ChatGPT", "AI開発", "自動化", "Midjourney"],
+    "auto_fetch_interval": 300
+  },
+  "ui": {
+    "default_theme": "dark",
+    "language": "ja",
+    "currency": "JPY"
+  }
+}
