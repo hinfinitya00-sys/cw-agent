@@ -1,0 +1,16 @@
+{
+  "name": "cw-agent",
+  "version": "2.0.0",
+  "description": "月収100万円CrowdWorks AI自動化エージェント",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.37.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}

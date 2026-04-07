@@ -172,7 +172,10 @@
   <section class="new-jobs-section">
     <div class="section-header">
       <h3>🆕 新着AI案件 <span class="badge badge-accent" id="newJobsCount">0件</span></h3>
-      <button class="btn btn-sm btn-outline" onclick="CWAgent.scheduleAutoFetch()">🔄 案件を取得</button>
+      <div class="section-header-actions">
+        <button class="btn btn-sm btn-outline" onclick="CWAgent.scheduleAutoFetch()">🔄 案件を取得</button>
+        <button class="btn btn-sm btn-accent" onclick="ClaudeUI.runMarketAnalysis()">📊 市場分析</button>
+      </div>
     </div>
     <div id="newJobsList" class="new-jobs-list">
       <div class="loading-placeholder">案件を取得中...</div>
@@ -270,9 +273,163 @@
   </div>
 
   <!-- ===== SCRIPTS ===== -->
+  <!-- ===== AI STATUS BANNER ===== -->
+  <div class="ai-banner ai-banner--checking" id="aiStatusBanner">
+    <span>🔄</span><span>Claude AI サーバー確認中...</span>
+  </div>
+
+  <!-- ===== AI SETTINGS MODAL ===== -->
+  <div class="modal-overlay" id="aiSettingsModal" style="display:none">
+    <div class="modal modal--wide">
+      <div class="modal-header">
+        <h3>🤖 Claude AI 設定</h3>
+        <button class="modal-close" onclick="ClaudeUI.closeSettings()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Anthropic API キー</label>
+          <input type="password" id="anthropicKeyInput" placeholder="sk-ant-..." autocomplete="off" />
+          <small class="form-hint">APIキーは localStorage にのみ保存されます。外部には送信されません。</small>
+        </div>
+        <div class="form-group">
+          <label>フリーランサープロフィール（提案文に自動挿入）</label>
+          <textarea id="profileSummaryInput" rows="4"
+            placeholder="例: AI開発・業務自動化専門のフリーランスエンジニア。Claude/GPT-4/Python歴3年以上。RAG・LangChain・API統合が得意。CrowdWorks月収100万円を継続達成中。"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="ClaudeUI.closeSettings()">キャンセル</button>
+        <button class="btn btn-accent" onclick="ClaudeUI.saveSettings()">保存する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== AI EVALUATE MODAL ===== -->
+  <div class="modal-overlay" id="aiEvalModal" style="display:none">
+    <div class="modal modal--wide">
+      <div class="modal-header">
+        <h3>🤖 Claude 深層評価</h3>
+        <button class="modal-close" onclick="ClaudeUI.closeEvaluateModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="eval-job-title" id="evalJobTitle"></div>
+        <div id="evalResultBody">
+          <div class="ai-loading"><div class="ai-spinner"></div><span>分析中...</span></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="ClaudeUI.closeEvaluateModal()">閉じる</button>
+        <button class="btn btn-primary" id="evalProposalBtn" data-job-id=""
+          onclick="ClaudeUI.closeEvaluateModal(); ClaudeUI.openProposalModal(this.dataset.jobId)">
+          ✍️ 提案文を生成
+        </button>
+        <button class="btn btn-accent" id="evalABTestBtn" data-job-id=""
+          onclick="ClaudeUI.closeEvaluateModal(); ClaudeUI.openABTestModal(this.dataset.jobId)">
+          🔀 A/Bテスト
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PROPOSAL GENERATION MODAL ===== -->
+  <div class="modal-overlay" id="proposalModal" style="display:none">
+    <div class="modal modal--wide">
+      <div class="modal-header">
+        <h3>✍️ 提案文生成</h3>
+        <button class="modal-close" onclick="ClaudeUI.closeProposalModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="eval-job-title" id="proposalJobTitle"></div>
+        <div class="form-row form-row--tight">
+          <div class="form-group">
+            <label>スタイル</label>
+            <select id="proposalVariant">
+              <option value="technical">技術専門家型（実装力・経験重視）</option>
+              <option value="business">ビジネス成果型（ROI・数値重視）</option>
+              <option value="creative">クリエイティブ型（独自アイデア重視）</option>
+              <option value="empathy">共感型（パートナーシップ重視）</option>
+            </select>
+          </div>
+          <div class="form-group form-group--action">
+            <label>&nbsp;</label>
+            <button class="btn btn-accent" id="proposalGenerateBtn" data-job-id=""
+              onclick="ClaudeUI.generateProposal()">
+              ⚡ 生成する
+            </button>
+          </div>
+        </div>
+        <div class="proposal-output-wrap">
+          <pre id="proposalOutput" class="proposal-output"></pre>
+        </div>
+        <div class="proposal-meta" id="proposalMeta"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="ClaudeUI.closeProposalModal()">閉じる</button>
+        <button class="btn btn-primary" onclick="ClaudeUI.copyProposal()">📋 コピー</button>
+        <button class="btn btn-accent" onclick="ClaudeUI.closeProposalModal(); ClaudeUI.openABTestModal(document.getElementById('proposalGenerateBtn').dataset.jobId)">
+          🔀 A/Bテストへ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== A/B TEST MODAL ===== -->
+  <div class="modal-overlay" id="abTestModal" style="display:none">
+    <div class="modal modal--fullwide">
+      <div class="modal-header">
+        <h3>🔀 A/B 提案文テスト</h3>
+        <button class="modal-close" onclick="ClaudeUI.closeABTestModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="eval-job-title" id="abTestJobTitle"></div>
+        <div class="ab-meta" id="abMeta">Claude が2パターンを並列生成中...</div>
+        <div class="ab-grid">
+          <div class="ab-card">
+            <div class="ab-card-header">
+              <span class="ab-label ab-label--a" id="abLabelA">A: 技術専門家型</span>
+              <button class="btn btn-sm btn-outline" onclick="ClaudeUI.copyABVariant('A')">📋 コピー</button>
+            </div>
+            <pre id="abVariantA" class="ab-text">生成中...</pre>
+          </div>
+          <div class="ab-card">
+            <div class="ab-card-header">
+              <span class="ab-label ab-label--b" id="abLabelB">B: ビジネス成果型</span>
+              <button class="btn btn-sm btn-outline" onclick="ClaudeUI.copyABVariant('B')">📋 コピー</button>
+            </div>
+            <pre id="abVariantB" class="ab-text">生成中...</pre>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="ClaudeUI.closeABTestModal()">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MARKET ANALYSIS MODAL ===== -->
+  <div class="modal-overlay" id="marketAnalysisModal" style="display:none">
+    <div class="modal modal--wide">
+      <div class="modal-header">
+        <h3>📊 AI市場分析 — 月収100万円戦略</h3>
+        <button class="modal-close" onclick="ClaudeUI.closeMarketAnalysisModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="marketAnalysisBody">
+          <div class="ai-loading"><div class="ai-spinner"></div><span>分析中...</span></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="ClaudeUI.closeMarketAnalysisModal()">閉じる</button>
+        <button class="btn btn-accent" onclick="ClaudeUI.runMarketAnalysis()">🔄 再分析</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SCRIPTS ===== -->
   <script src="js/analytics.js"></script>
   <script src="js/motivation.js"></script>
   <script src="js/crowdworks.js"></script>
   <script src="js/main.js"></script>
+  <script src="js/claude-ai.js"></script>
 </body>
 </html>

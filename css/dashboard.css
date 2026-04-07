@@ -1132,3 +1132,293 @@ body {
 
 .btn-icon:hover { border-color: var(--accent); color: var(--accent); }
 .btn-icon.del:hover { border-color: var(--danger); color: var(--danger); }
+
+/* ===================================================
+   Claude AI 統合スタイル (v2.0)
+   =================================================== */
+
+/* ---------- AI ステータスバナー ---------- */
+.ai-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 28px 0;
+  padding: 10px 18px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid;
+}
+.ai-banner--checking { background: rgba(110,118,129,0.1); border-color: var(--border); color: var(--text-secondary); }
+.ai-banner--ok       { background: var(--success-bg); border-color: rgba(63,185,80,0.3); color: var(--success); }
+.ai-banner--warn     { background: rgba(240,165,0,0.1); border-color: rgba(240,165,0,0.3); color: var(--warning); }
+.ai-banner--error    { background: var(--danger-bg); border-color: rgba(255,107,107,0.3); color: var(--danger); }
+.ai-banner code { background: rgba(0,0,0,0.3); padding: 1px 6px; border-radius: 4px; font-size: 12px; }
+.ai-banner .btn { margin-left: auto; flex-shrink: 0; }
+
+/* ---------- 案件アクションボタン ---------- */
+.job-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.btn-outline-ai {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid rgba(0,212,170,0.4);
+  border-radius: 6px;
+  background: rgba(0,212,170,0.06);
+  color: var(--accent);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.btn-outline-ai:hover {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+}
+
+/* ---------- セクションヘッダーアクション ---------- */
+.section-header-actions { display: flex; gap: 8px; }
+
+/* ---------- modal sizes ---------- */
+.modal--wide { width: 680px; }
+.modal--fullwide { width: min(90vw, 1100px); }
+
+/* ---------- form extras ---------- */
+.form-group textarea {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  padding: 10px 12px;
+  resize: vertical;
+  font-family: inherit;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+.form-group textarea:focus { outline: none; border-color: var(--accent); }
+.form-hint { font-size: 11px; color: var(--text-muted); }
+.form-row--tight { gap: 10px; }
+.form-group--action { justify-content: flex-end; }
+
+/* ---------- AI ローディング ---------- */
+.ai-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+.ai-spinner {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.ai-error { color: var(--danger); background: var(--danger-bg); border-radius: var(--radius-sm); padding: 16px; font-size: 13px; }
+
+/* ---------- 案件タイトル ---------- */
+.eval-job-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+}
+
+/* ---------- 評価結果 ---------- */
+.eval-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.eval-score-circle {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 900;
+  flex-shrink: 0;
+  border: 3px solid;
+}
+.eval-score-circle.high { border-color: var(--success); color: var(--success); background: var(--success-bg); }
+.eval-score-circle.med  { border-color: var(--warning); color: var(--warning); background: rgba(240,165,0,0.1); }
+.eval-score-circle.low  { border-color: var(--danger); color: var(--danger); background: var(--danger-bg); }
+
+.eval-header-right { display: flex; flex-direction: column; gap: 8px; }
+.eval-rec { font-size: 14px; font-weight: 700; }
+.eval-win { font-size: 13px; color: var(--text-secondary); }
+.rec-apply { color: var(--success); }
+.rec-watch { color: var(--warning); }
+.rec-skip  { color: var(--danger); }
+
+.eval-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.eval-item {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  text-align: center;
+}
+.eval-item-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.eval-item-value { font-size: 16px; font-weight: 800; color: var(--text-primary); }
+.eval-item-value.accent { color: var(--accent); }
+
+.eval-section { display: flex; flex-direction: column; gap: 8px; }
+.eval-section-title { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; }
+.eval-section p, .eval-section ul { font-size: 13px; color: var(--text-secondary); margin: 0; }
+.eval-section ul { padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.highlight-text { color: var(--accent) !important; font-weight: 600; }
+
+/* ---------- 提案文出力 ---------- */
+.proposal-output-wrap {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  min-height: 200px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+.proposal-output {
+  margin: 0;
+  padding: 16px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-primary);
+  font-family: inherit;
+  min-height: 200px;
+}
+.proposal-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+/* ---------- A/B テスト ---------- */
+.ab-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  padding-bottom: 8px;
+}
+.ab-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 700px) { .ab-grid { grid-template-columns: 1fr; } }
+.ab-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.ab-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.ab-label { font-size: 12px; font-weight: 700; }
+.ab-label--a { color: var(--info); }
+.ab-label--b { color: var(--accent); }
+.ab-text {
+  margin: 0;
+  padding: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  font-family: inherit;
+  min-height: 160px;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+/* ---------- 市場分析 ---------- */
+.market-forecast {
+  background: linear-gradient(135deg, rgba(0,212,170,0.12), rgba(0,212,170,0.04));
+  border: 1px solid rgba(0,212,170,0.3);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-align: center;
+}
+.forecast-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
+.forecast-value { font-size: 36px; font-weight: 900; color: var(--accent); margin: 4px 0; }
+.forecast-jobs  { font-size: 12px; color: var(--text-muted); }
+
+.market-section { display: flex; flex-direction: column; gap: 10px; }
+.market-section-title { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; }
+.market-section p { font-size: 13px; color: var(--text-secondary); margin: 0; }
+
+.market-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.market-table th { padding: 8px 12px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
+.market-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+.market-table tr:last-child td { border-bottom: none; }
+.market-table td .accent { color: var(--accent); font-weight: 700; }
+.table-responsive { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+
+.demand-badge { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.demand-badge { background: rgba(240,165,0,0.1); color: var(--warning); }
+
+.kw-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.kw-chip { padding: 4px 12px; background: rgba(88,166,255,0.1); border: 1px solid rgba(88,166,255,0.25); border-radius: 20px; font-size: 12px; color: var(--info); }
+
+.stack-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.stack-chip { padding: 4px 12px; background: var(--accent-glow); border: 1px solid rgba(0,212,170,0.3); border-radius: 20px; font-size: 12px; color: var(--accent); font-weight: 600; }
+
+.strategy-steps { display: flex; flex-direction: column; gap: 8px; }
+.strategy-step { display: flex; gap: 12px; align-items: flex-start; font-size: 13px; color: var(--text-secondary); }
+.step-label { flex-shrink: 0; font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-glow); padding: 2px 8px; border-radius: 6px; width: 70px; text-align: center; }
+
+.target-item { background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; }
+.target-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.target-meta { font-size: 12px; color: var(--text-secondary); }
+.application-targets { display: flex; flex-direction: column; gap: 8px; }
+
+.risk-section p { color: var(--warning) !important; }
+
+/* ---------- トースト通知 ---------- */
+#toastContainer {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast {
+  padding: 12px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.25s ease;
+  max-width: 320px;
+}
+.toast--show { opacity: 1; transform: translateY(0); }
+.toast--success { background: var(--success-bg); border: 1px solid rgba(63,185,80,0.4); color: var(--success); }
+.toast--error   { background: var(--danger-bg);  border: 1px solid rgba(255,107,107,0.4); color: var(--danger); }

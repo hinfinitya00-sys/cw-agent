@@ -340,6 +340,11 @@
             '<span>📅 ' + _formatDate(job.posted_at) + '</span>' +
           '</div>' +
           '<div class="job-recommendation ' + recClass + '">' + recLabel + ' — ' + _escHtml(job.eval_reason || '') + '</div>' +
+          '<div class="job-actions">' +
+            '<button class="btn btn-sm btn-outline-ai" onclick="ClaudeUI && ClaudeUI.openEvaluateModal(\'' + job.id + '\')">🤖 Claude評価</button>' +
+            '<button class="btn btn-sm btn-outline-ai" onclick="ClaudeUI && ClaudeUI.openProposalModal(\'' + job.id + '\')">✍️ 提案文</button>' +
+            '<button class="btn btn-sm btn-outline-ai" onclick="ClaudeUI && ClaudeUI.openABTestModal(\'' + job.id + '\')">🔀 A/Bテスト</button>' +
+          '</div>' +
         '</div>';
       }).join('');
     },
