@@ -9,8 +9,8 @@
   const AI_KEYWORDS = ['Claude', 'GPT', 'ChatGPT', 'Midjourney', 'Gemini', 'Stable Diffusion',
     'AI', '自動化', 'LLM', '機械学習', 'deep learning', 'ディープラーニング', 'StableDiffusion',
     'DALL-E', 'Whisper', 'RAG', 'ベクトル', '自然言語', 'NLP'];
-  const MIN_HOURLY = 2500;
-  const MAX_WEEKLY_HOURS = 15;
+  const MIN_HOURLY = 3000;
+  const MAX_WEEKLY_HOURS = 18;
 
   let _fetchInterval = null;
 
@@ -229,7 +229,7 @@
       let hourlyScore = 0;
       if (hourlyRate >= 5000) hourlyScore = 30;
       else if (hourlyRate >= 3500) hourlyScore = 22;
-      else if (hourlyRate >= 2500) hourlyScore = 15;
+      else if (hourlyRate >= 3000) hourlyScore = 15;
       else if (hourlyRate >= 1500) hourlyScore = 5;
       else hourlyScore = 0;
 

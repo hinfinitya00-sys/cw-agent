@@ -91,7 +91,7 @@
       <div class="kpi-body">
         <div class="kpi-label">時給効率</div>
         <div class="kpi-value" id="kpiHourlyVal">¥0/h</div>
-        <div class="kpi-sub" id="kpiHourlySub">目標 ¥2,500/h</div>
+        <div class="kpi-sub" id="kpiHourlySub">目標 ¥3,000/h</div>
       </div>
       <div class="kpi-trend" id="kpiHourlyTrend">→</div>
     </div>
@@ -100,7 +100,7 @@
       <div class="kpi-body">
         <div class="kpi-label">稼働時間</div>
         <div class="kpi-value" id="kpiHoursVal">0h</div>
-        <div class="kpi-sub" id="kpiHoursSub">週制限 13h</div>
+        <div class="kpi-sub" id="kpiHoursSub">週制限 18h</div>
       </div>
       <div class="kpi-trend" id="kpiHoursTrend">→</div>
     </div>
@@ -109,17 +109,17 @@
   <!-- ===== WEEKLY GOAL ===== -->
   <section class="weekly-section">
     <div class="weekly-header">
-      <h3>週次目標 <span class="badge badge-info">週13時間制限</span></h3>
-      <span id="weeklyStatus" class="weekly-status">0h / 13h</span>
+      <h3>週次目標 <span class="badge badge-info">週18時間制限</span></h3>
+      <span id="weeklyStatus" class="weekly-status">0h / 18h</span>
     </div>
     <div class="weekly-bar-track">
       <div class="weekly-bar-fill" id="weeklyBarFill" style="width:0%"></div>
       <div class="weekly-limit-marker" style="left:100%">
-        <span>13h</span>
+        <span>18h</span>
       </div>
     </div>
     <div class="weekly-footer">
-      <span id="weeklyRemaining">残り 13時間</span>
+      <span id="weeklyRemaining">残り 18時間</span>
       <span id="weeklyProjected">週収益予測: ¥—</span>
     </div>
   </section>
@@ -139,7 +139,7 @@
       <div class="filter-label">フィルター</div>
       <div class="filter-chips">
         <button class="chip" id="filterAI" onclick="toggleFilter('ai')">🤖 AI案件のみ</button>
-        <button class="chip" id="filterHourly" onclick="toggleFilter('hourly')">💴 時給2500円以上</button>
+        <button class="chip" id="filterHourly" onclick="toggleFilter('hourly')">💴 時給3000円以上</button>
         <button class="chip" id="filterExclude" onclick="toggleFilter('exclude')">🚫 除外案件非表示</button>
         <button class="chip active" id="filterAll" onclick="toggleFilter('all')">📋 全て表示</button>
       </div>

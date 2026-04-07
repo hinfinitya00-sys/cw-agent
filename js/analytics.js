@@ -7,7 +7,7 @@
 
   const STORAGE_KEY = 'cw_agent_data';
   const STREAK_KEY = 'cw_agent_streak';
-  const MIN_HOURLY = 2500;
+  const MIN_HOURLY = 3000;
 
   // ---------- Chart data (last 6 months) ----------
   const chartData = {
@@ -66,7 +66,7 @@
       let grade;
       if (hourlyRate >= 5000) grade = 'S';
       else if (hourlyRate >= 3500) grade = 'A';
-      else if (hourlyRate >= 2500) grade = 'B';
+      else if (hourlyRate >= 3000) grade = 'B';
       else if (hourlyRate >= 1500) grade = 'C';
       else grade = 'D';
       return { hourlyRate, roiVsBaseline: parseFloat(roiVsBaseline), grade };

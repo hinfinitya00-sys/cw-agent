@@ -220,15 +220,15 @@
     _setText('kpiHourlyVal', '¥' + hourlyRate.toLocaleString('ja-JP') + '/h');
     const hTrend = document.getElementById('kpiHourlyTrend');
     if (hTrend) {
-      hTrend.textContent = hourlyRate >= 2500 ? '↑' : '↓';
-      hTrend.className = 'kpi-trend ' + (hourlyRate >= 2500 ? 'up' : 'down');
+      hTrend.textContent = hourlyRate >= 3000 ? '↑' : '↓';
+      hTrend.className = 'kpi-trend ' + (hourlyRate >= 3000 ? 'up' : 'down');
     }
-    _setText('kpiHourlySub', hourlyRate >= 2500 ? '目標達成中 ✓' : '目標 ¥2,500/h');
+    _setText('kpiHourlySub', hourlyRate >= 3000 ? '目標達成中 ✓' : '目標 ¥3,000/h');
 
     // Hours KPI
     _setText('kpiHoursVal', Math.round(totalHours * 10) / 10 + 'h');
     const weekH = AppState.weeklyHours || 0;
-    _setText('kpiHoursSub', '今週 ' + Math.round(weekH * 10) / 10 + 'h / 13h');
+    _setText('kpiHoursSub', '今週 ' + Math.round(weekH * 10) / 10 + 'h / 18h');
     const hTrend2 = document.getElementById('kpiHoursTrend');
     if (hTrend2) {
       hTrend2.textContent = weekH > 13 ? '⚠' : weekH >= 10 ? '↑' : '→';
@@ -276,7 +276,7 @@
   // =========================================================
   function updateWeeklyBar() {
     const weekH = AppState.weeklyHours || 0;
-    const limit = 13;
+    const limit = 18;
     const pct = Math.min(100, (weekH / limit) * 100);
 
     const fill = document.getElementById('weeklyBarFill');
@@ -341,7 +341,7 @@
     if (_filters.hourly) {
       filtered = filtered.filter(p => {
         const hr = (parseFloat(p.hours) || 1);
-        return Math.round((parseFloat(p.budget) || 0) / hr) >= 2500;
+        return Math.round((parseFloat(p.budget) || 0) / hr) >= 3000;
       });
     }
 
@@ -381,7 +381,7 @@
         '<td class="font-bold">' + _escHtml(p.title) + '</td>' +
         '<td>' + _escHtml(p.category) + '</td>' +
         '<td>¥' + budget.toLocaleString('ja-JP') + '</td>' +
-        '<td>' + (hourly >= 2500 ? '<span class="text-accent">¥' + hourly.toLocaleString() + '</span>' : '<span class="text-danger">¥' + hourly.toLocaleString() + '</span>') + '/h</td>' +
+        '<td>' + (hourly >= 3000 ? '<span class="text-accent">¥' + hourly.toLocaleString() + '</span>' : '<span class="text-danger">¥' + hourly.toLocaleString() + '</span>') + '/h</td>' +
         '<td>' + hours + 'h</td>' +
         '<td><span class="status-badge status-' + (p.status || 'watching') + '">' + (STATUS_LABELS[p.status] || p.status) + '</span></td>' +
         '<td><div class="ai-score-wrap ' + scoreClass + '"><div class="ai-score-bar"><div class="ai-score-fill" style="width:' + score + '%"></div></div><span class="ai-score-text">' + score + '</span></div></td>' +
