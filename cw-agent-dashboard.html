@@ -203,64 +203,64 @@
       <!-- Header -->
       <header class="header">
           <div class="logo">
-                <div class="logo-icon">🤖</div>div>
+                <div class="logo-icon">🤖</div>
                 <span>CW Agent</span>
-          </div>div>
+          </div>
         <span style="color:var(--text3);font-size:12px">CrowdWorks 自動エージェント</span>
-        <div class="hsp"></div>div>
+        <div class="hsp"></div>
         <div class="status-badge stopped" id="statusBadge">
-            <div class="dot" id="statusDot"></div>div>
+            <div class="dot" id="statusDot"></div>
             <span id="statusText">停止中</span>
-        </div>div>
+        </div>
         <div class="hbtn" onclick="openPanel('notifications')" title="要判断の通知">
-            🔔<div class="badge-red" id="notifBadge">0</div>div>
-        </div>div>
-        <div class="hbtn" onclick="openPanel('settings')" title="設定">⚙️</div>div>
-      </header>header>
+            🔔<div class="badge-red" id="notifBadge">0</div>
+        </div>
+        <div class="hbtn" onclick="openPanel('settings')" title="設定">⚙️</div>
+      </header>
     
     <!-- Sidebar -->
     <nav class="sidebar">
-      <div class="nav-sec">メイン</div>div>
+      <div class="nav-sec">メイン</div>
       <div class="nav-item active" onclick="openPanel('dashboard')">
           <span class="nav-icon">📊</span> ダッシュボード
-      </div>div>
+      </div>
       <div class="nav-item" onclick="openPanel('pipeline')">
           <span class="nav-icon">🔄</span> 案件パイプライン
           <span class="nav-cnt" id="pipelineBadge"></span>
-      </div>div>
+      </div>
       <div class="nav-item" onclick="openPanel('notifications')">
           <span class="nav-icon">🔔</span> 要確認通知
           <span class="nav-cnt" id="notifNavBadge"></span>
-      </div>div>
+      </div>
     
-      <div class="nav-sec">AI設定</div>div>
+      <div class="nav-sec">AI設定</div>
       <div class="nav-item" onclick="openPanel('job-settings')">
           <span class="nav-icon">🎯</span> 応募条件
-      </div>div>
+      </div>
       <div class="nav-item" onclick="openPanel('work-settings')">
           <span class="nav-icon">⚡</span> 作業スキル
-      </div>div>
+      </div>
     
-      <div class="nav-sec">ログ</div>div>
+      <div class="nav-sec">ログ</div>
       <div class="nav-item" onclick="openPanel('activity')">
           <span class="nav-icon">📋</span> 活動ログ
-      </div>div>
+      </div>
       <div class="nav-item" onclick="openPanel('earnings')">
           <span class="nav-icon">💰</span> 収益レポート
-      </div>div>
+      </div>
     
-      <div class="nav-sec">通知</div>div>
+      <div class="nav-sec">通知</div>
       <div class="nav-item" onclick="openPanel('settings')">
           <span class="nav-icon">⚙️</span> 設定
-      </div>div>
+      </div>
     
       <!-- Agent Control -->
       <div class="agent-ctrl">
-          <button class="btn btn-success" id="startBtn" onclick="startAgent()">▶ エージェント起動</button>button>
-          <button class="btn btn-amber" id="pauseBtn" onclick="pauseAgent()" disabled>⏸ 一時停止</button>button>
-          <button class="btn btn-danger" id="stopBtn" onclick="stopAgent()" disabled>⏹ 停止</button>button>
-      </div>div>
-    </nav>nav>
+          <button class="btn btn-success" id="startBtn" onclick="startAgent()">▶ エージェント起動</button>
+          <button class="btn btn-amber" id="pauseBtn" onclick="pauseAgent()" disabled>⏸ 一時停止</button>
+          <button class="btn btn-danger" id="stopBtn" onclick="stopAgent()" disabled>⏹ 停止</button>
+      </div>
+    </nav>
     
     <!-- Main -->
     <main class="main">
@@ -269,110 +269,111 @@
       <div class="panel active" id="panel-dashboard">
           <div class="stats-row">
                 <div class="stat-card">
-                        <div class="stat-label">今月の応募数</div>div>
-                        <div class="stat-value" style="color:var(--blue-b)" id="st-applied">0</div>div>
-                        <div class="stat-sub" id="st-applied-sub">今日 0件</div>div>
-                </div>div>
+                        <div class="stat-label">今月の応募数</div>
+                        <div class="stat-value" style="color:var(--blue-b)" id="st-applied">0</div>
+                        <div class="stat-sub" id="st-applied-sub">今日 0件</div>
+                </div>
                 <div class="stat-card">
-                        <div class="stat-label">受注中</div>div>
-                        <div class="stat-value" style="color:var(--teal)" id="st-active">0</div>div>
-                        <div class="stat-sub">作業中の案件</div>div>
-                </div>div>
+                        <div class="stat-label">受注中</div>
+                        <div class="stat-value" style="color:var(--teal)" id="st-active">0</div>
+                        <div class="stat-sub">作業中の案件</div>
+                </div>
                 <div class="stat-card">
-                        <div class="stat-label">今月の収益</div>div>
-                        <div class="stat-value" style="color:var(--green)" id="st-earnings">¥0</div>div>
-                        <div class="stat-sub" id="st-earnings-sub">完了 0件</div>div>
-                </div>div>
+                        <div class="stat-label">今月の収益</div>
+                        <div class="stat-value" style="color:var(--green)" id="st-earnings">¥0</div>
+                        <div class="stat-sub" id="st-earnings-sub">完了 0件</div>
+                </div>
                 <div class="stat-card">
-                        <div class="stat-label">要確認</div>div>
-                        <div class="stat-value" style="color:var(--amber)" id="st-pending">0</div>div>
-                        <div class="stat-sub">あなたの判断が必要</div>div>
-                </div>div>
-          </div>div>
+                        <div class="stat-label">要確認</div>
+                        <div class="stat-value" style="color:var(--amber)" id="st-pending">0</div>
+                        <div class="stat-sub">あなたの判断が必要</div>
+                </div>
+          </div>
       
           <!-- AI思考中 -->
           <div class="ai-thinking" id="aiThinking" style="display:none">
-                <div class="ai-dots"><span>●</span><span>●</span><span>●</span></div>div>
+                <div class="ai-dots"><span>●</span><span>●</span><span>●</span></div>
                 <span id="aiThinkingText">AIが案件を分析中...</span>
-          </div>div>
+          </div>
       
           <div class="card">
                 <div class="card-header">
                         <span>📊</span>
                         <span class="card-title">最新の活動</span>
-                        <div class="csp"></div>div>
-                        <button class="btn btn-ghost btn-sm" onclick="openPanel('activity')">すべて見る</button>button>
-                </div>div>
+                        <div class="csp"></div>
+                        <button class="btn btn-ghost btn-sm" onclick="openPanel('activity')">すべて見る</button>
+                </div>
                 <div class="log-area" id="dashLog">
                         <div class="log-entry">
                                   <span class="log-time">--:--:--</span>
                                   <span class="log-level info">INFO</span>
                                   <span class="log-msg">CWエージェント起動待機中。「エージェント起動」ボタンを押してください。</span>
-                        </div>div>
-                </div>div>
-          </div>div>
+                        </div>
+                </div>
+          </div>
       
           <div class="card">
                 <div class="card-header">
                         <span>🔄</span>
                         <span class="card-title">現在の案件状況</span>
-                </div>div>
+                </div>
                 <div class="pipeline" id="dashPipeline">
                         <div class="pcol">
-                                  <div class="phead" style="color:var(--blue-b)">🔍 スキャン中 <span class="pcnt" id="cnt-scan">0</span></div>div>
-                                  <div class="pitems" id="col-scan"><div class="empty"><div class="empty-icon">📭</div>div>案件スキャン待ち</div>div></div>div>
-                        </div>div>
+                                  <div class="phead" style="color:var(--blue-b)">🔍 スキャン中 <span class="pcnt" id="cnt-scan">0</span></div>
+                                  <div class="pitems" id="col-scan"><div class="empty"><div class="empty-icon">📭</div>案件スキャン待ち</div></div>
+                        </div>
                         <div class="pcol">
-                                  <div class="phead" style="color:var(--amber)">📤 応募済み <span class="pcnt" id="cnt-applied">0</span></div>div>
-                                  <div class="pitems" id="col-applied"><div class="empty"><div class="empty-icon">📬</div>div>応募待ち</div>div></div>div>
-                        </div>div>
+                                  <div class="phead" style="color:var(--amber)">📤 応募済み <span class="pcnt" id="cnt-applied">0</span></div>
+                                  <div class="pitems" id="col-applied"><div class="empty"><div class="empty-icon">📬</div>応募待ち</div></div>
+                        </div>
                         <div class="pcol">
-                                  <div class="phead" style="color:var(--teal)">⚙️ 作業中 <span class="pcnt" id="cnt-working">0</span></div>div>
-                                  <div class="pitems" id="col-working"><div class="empty"><div class="empty-icon">🛠️</div>div>受注待ち</div>div></div>div>
-                        </div>div>
+                                  <div class="phead" style="color:var(--teal)">⚙️ 作業中 <span class="pcnt" id="cnt-working">0</span></div>
+                                  <div class="pitems" id="col-working"><div class="empty"><div class="empty-icon">🛠️</div>受注待ち</div></div>
+                        </div>
                         <div class="pcol">
-                                  <div class="phead" style="color:var(--green)">✅ 完了 <span class="pcnt" id="cnt-done">0</span></div>div>
-                                  <div class="pitems" id="col-done"><div class="empty"><div class="empty-icon">🎉</div>div>納品待ち</div>div></div>div>
-                        </div>div>
-                </div>div>
-          </div>div>
-      </div>div>
+                                  <div class="phead" style="color:var(--green)">✅ 完了 <span class="pcnt" id="cnt-done">0</span></div>
+                                  <div class="pitems" id="col-done"><div class="empty"><div class="empty-icon">🎉</div>納品待ち</div></div>
+                        </div>
+                </div>
+          </div>
+      </div>
     
       <!-- 設定パネル（簡略版） -->
       <div class="panel" id="panel-settings">
           <div class="card">
-                <div class="card-header"><span>⚙️</span><span class="card-title">API・通知設定</span></div>div>
+                <div class="card-header"><span>⚙️</span><span class="card-title">API・通知設定</span></div>
                 <div class="card-body">
                         <div class="settings-grid">
                                   <div class="form-group full">
-                                              <label class="form-label">🔑 Anthropic API Key</label>label>
+                                              <label class="form-label">🔑 Anthropic API Key</label>
                                               <input class="form-input" type="password" id="cfg-api-key" placeholder="sk-ant-...">
                                               <span class="form-hint">ClaudeのAPIキー</span>
-                                  </div>div>
+                                  </div>
                                   <div class="form-group full">
-                                              <label class="form-label">🔑 CrowdWorks セッションCookie</label>label>
+                                              <label class="form-label">🔑 CrowdWorks セッションCookie</label>
                                               <input class="form-input" type="password" id="cfg-cw-session" placeholder="_crowdworks_session=...">
                                               <span class="form-hint">CrowdWorksのセッションCookie</span>
-                                  </div>div>
+                                  </div>
                                   <div class="form-group">
-                                              <label class="form-label">⏱ スキャン間隔（分）</label>label>
+                                              <label class="form-label">⏱ スキャン間隔（分）</label>
                                               <input class="form-input" type="number" id="cfg-interval" value="15" min="5" max="120">
-                                  </div>div>
+                                  </div>
                                   <div class="form-group">
-                                              <label class="form-label">🤖 使用モデル</label>label>
+                                              <label class="form-label">🤖 使用モデル</label>
                                               <select class="form-input" id="cfg-model">
-                                                            <option value="claude-sonnet-4-5">Claude Sonnet 4.5</option>option>
-                                                            <option value="claude-haiku-4-5">Claude Haiku 4.5</option>option>
-                                              </select>select>
-                                  </div>div>
-                        </div>div>
+                                                            <option value="claude-opus-4-6">Claude Opus 4.6（推奨）</option>
+                                                            <option value="claude-sonnet-4-6">Claude Sonnet 4.6</option>
+                                                            <option value="claude-haiku-4-5">Claude Haiku 4.5（高速）</option>
+                                              </select>
+                                  </div>
+                        </div>
                         <div style="margin-top:16px;display:flex;gap:10px">
-                                  <button class="btn btn-primary" onclick="saveSettings()">💾 設定を保存</button>button>
-                                  <button class="btn btn-ghost" onclick="testApi()">🤖 API接続テスト</button>button>
-                        </div>div>
-                </div>div>
-          </div>div>
-      </div>div>
+                                  <button class="btn btn-primary" onclick="saveSettings()">💾 設定を保存</button>
+                                  <button class="btn btn-ghost" onclick="testApi()">🤖 API接続テスト</button>
+                        </div>
+                </div>
+          </div>
+      </div>
     
       <!-- 通知パネル -->
       <div class="panel" id="panel-notifications">
@@ -380,53 +381,53 @@
                 <div class="card-header">
                         <span>🔔</span>
                         <span class="card-title">要確認通知</span>
-                </div>div>
+                </div>
                 <div class="card-body">
                         <div class="notif-list" id="notifList">
-                                  <div class="empty"><div class="empty-icon">✅</div>div>現在、判断が必要な通知はありません</div>div>
-                        </div>div>
-                </div>div>
-          </div>div>
-      </div>div>
+                                  <div class="empty"><div class="empty-icon">✅</div>現在、判断が必要な通知はありません</div>
+                        </div>
+                </div>
+          </div>
+      </div>
     
       <!-- その他のパネル（省略版） -->
       <div class="panel" id="panel-pipeline">
           <div class="card">
-                <div class="card-header"><span>🔄</span><span class="card-title">案件パイプライン</span></div>div>
-                <div class="card-body"><p>パイプライン詳細表示エリア</p></div>div>
-          </div>div>
-      </div>div>
+                <div class="card-header"><span>🔄</span><span class="card-title">案件パイプライン</span></div>
+                <div class="card-body"><p>パイプライン詳細表示エリア</p></div>
+          </div>
+      </div>
     
       <div class="panel" id="panel-job-settings">
           <div class="card">
-                <div class="card-header"><span>🎯</span><span class="card-title">応募条件設定</span></div>div>
-                <div class="card-body"><p>応募条件設定エリア</p></div>div>
-          </div>div>
-      </div>div>
+                <div class="card-header"><span>🎯</span><span class="card-title">応募条件設定</span></div>
+                <div class="card-body"><p>応募条件設定エリア</p></div>
+          </div>
+      </div>
     
       <div class="panel" id="panel-work-settings">
           <div class="card">
-                <div class="card-header"><span>⚡</span><span class="card-title">作業スキル設定</span></div>div>
-                <div class="card-body"><p>作業スキル設定エリア</p></div>div>
-          </div>div>
-      </div>div>
+                <div class="card-header"><span>⚡</span><span class="card-title">作業スキル設定</span></div>
+                <div class="card-body"><p>作業スキル設定エリア</p></div>
+          </div>
+      </div>
     
       <div class="panel" id="panel-activity">
           <div class="card">
-                <div class="card-header"><span>📋</span><span class="card-title">活動ログ</span></div>div>
-                <div class="log-area" id="fullLog" style="height:500px"></div>div>
-          </div>div>
-      </div>div>
+                <div class="card-header"><span>📋</span><span class="card-title">活動ログ</span></div>
+                <div class="log-area" id="fullLog" style="height:500px"></div>
+          </div>
+      </div>
     
       <div class="panel" id="panel-earnings">
           <div class="card">
-                <div class="card-header"><span>💰</span><span class="card-title">収益レポート</span></div>div>
-                <div class="card-body"><p>収益レポート表示エリア</p></div>div>
-          </div>div>
-      </div>div>
+                <div class="card-header"><span>💰</span><span class="card-title">収益レポート</span></div>
+                <div class="card-body"><p>収益レポート表示エリア</p></div>
+          </div>
+      </div>
     
-    </main>main>
-    </div>div>
+    </main>
+    </div>
   
   <script>
     // ════════════════════════════════════════
@@ -441,7 +442,7 @@
         earnings: [],
         scanTimer: null,
         config: {
-              apiKey: '', cwSession: '', interval: 15, model: 'claude-sonnet-4-5',
+              apiKey: '', cwSession: '', interval: 15, model: 'claude-opus-4-6',
               autoApply: true, autoWork: true, autoDeliver: true
         }
     };
@@ -695,7 +696,7 @@
                       'anthropic-version': '2023-06-01'
               },
               body: JSON.stringify({
-                      model: state.config.model || 'claude-sonnet-4-5',
+                      model: state.config.model || 'claude-opus-4-6',
                       max_tokens: 1000,
                       messages: [{ role: 'user', content: prompt }]
               })
