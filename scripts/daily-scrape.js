@@ -1,5 +1,5 @@
 // 毎日の案件取得・応募文生成スクリプト
-import CrowdWorksIntegration from '../js/crowdworks-scraper-integration.js';
+import CrowdWorksIntegration from '../js/crowdworks-scraper-integration-with-criteria.js';
 
 async function dailyScrape() {
     console.log('🌅 其田さん専用日次案件取得開始...');

@@ -11,7 +11,7 @@ class CrowdWorksRealScraper {
     constructor(options = {}) {
         this.options = {
             headless: options.headless !== false,
-            waitTimeout: options.waitTimeout || 10000,
+            waitTimeout: options.waitTimeout || 30000,
             pageLoadDelay: options.pageLoadDelay || 3000,
             ...options
         };
@@ -53,7 +53,7 @@ class CrowdWorksRealScraper {
             console.log(`📊 アクセス中: ${url}`);
 
             await this.page.goto(url, {
-                waitUntil: ['networkidle0', 'domcontentloaded'],
+                waitUntil: 'domcontentloaded',
                 timeout: this.options.waitTimeout
             });
 
