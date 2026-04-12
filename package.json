@@ -1,12 +1,14 @@
 {
-  "name": "cw-agent",
-  "version": "2.0.0",
-  "description": "月収100万円CrowdWorks AI自動化エージェント",
+  "name": "cw-agent-sonoda-automation",
+  "version": "2.1.0",
+  "description": "CW-Agent 其田さん専用完全自動化システム",
   "type": "module",
-  "main": "server.js",
+  "main": "server-auto.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+    "start": "node server-auto.js",
+    "dev": "node --watch server-auto.js",
+    "scrape": "node scripts/daily-scrape.js",
+    "test-scraper": "node scripts/test-scraper.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.37.0",

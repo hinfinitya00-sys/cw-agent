@@ -72,4 +72,4 @@ class FullAutomationFlow {
     }
 }
 
-module.exports = FullAutomationFlow;
+export default FullAutomationFlow;

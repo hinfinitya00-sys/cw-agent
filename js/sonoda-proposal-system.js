@@ -53,4 +53,4 @@ ${result.proposal}
     }
 }
 
-module.exports = SonodaProposalSystem;
+export default SonodaProposalSystem;
