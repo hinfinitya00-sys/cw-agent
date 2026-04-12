@@ -196,6 +196,9 @@
     .table tr:last-child td{border-bottom:none}
     .table tr:hover td{background:var(--bg2)}
     </style>
+  <script src="js/crowdworks-live.js"></script>
+  <script src="js/claude-api-live.js"></script>
+  <script src="js/auto-submit.js"></script>
   </head>
   <body>
     <div class="app">
@@ -366,10 +369,21 @@
                                                             <option value="claude-haiku-4-5">Claude Haiku 4.5（高速）</option>
                                               </select>
                                   </div>
+                                  <div class="form-group">
+                                              <label class="form-label">🖥 AI サーバー URL</label>
+                                              <input class="form-input" type="text" id="cfg-server-url" placeholder="http://localhost:3456">
+                                              <span class="form-hint">server.js の起動アドレス（デフォルト: http://localhost:3456）</span>
+                                  </div>
+                                  <div class="form-group full">
+                                              <label class="form-label">👤 フリーランサープロフィール（提案文生成に使用）</label>
+                                              <textarea class="form-input" id="cfg-profile" placeholder="例: AI開発・業務自動化専門のフリーランスエンジニア。Claude/GPT-4/Python歴3年以上。RAG・LangChain・API統合が得意。CrowdWorks月収100万円を継続達成中。"></textarea>
+                                              <span class="form-hint">Claude が提案文を生成する際の自己紹介文として使用します</span>
+                                  </div>
                         </div>
                         <div style="margin-top:16px;display:flex;gap:10px">
                                   <button class="btn btn-primary" onclick="saveSettings()">💾 設定を保存</button>
                                   <button class="btn btn-ghost" onclick="testApi()">🤖 API接続テスト</button>
+                                  <button class="btn btn-ghost" onclick="testCwScan()">🔍 CWスキャンテスト</button>
                         </div>
                 </div>
           </div>
@@ -428,7 +442,45 @@
     
     </main>
     </div>
-  
+
+    <!-- 応募確認モーダル -->
+    <div class="modal-overlay" id="applyConfirmModal">
+      <div class="modal" style="width:680px">
+        <div class="modal-header">
+          <span>📤</span>
+          <span class="modal-title">応募確認</span>
+          <button class="modal-close" onclick="applyConfirmReject()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:8px">
+            <div style="font-size:12px;color:var(--text3);margin-bottom:4px">案件</div>
+            <div style="font-weight:600;font-size:14px" id="confirmJobTitle">—</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:4px" id="confirmJobMeta">—</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px" id="confirmEvalRow">
+            <div style="background:var(--bg2);border-radius:8px;padding:10px;text-align:center">
+              <div style="font-size:11px;color:var(--text3)">スコア</div>
+              <div style="font-size:22px;font-weight:700;color:var(--teal)" id="confirmScore">—</div>
+            </div>
+            <div style="background:var(--bg2);border-radius:8px;padding:10px;text-align:center">
+              <div style="font-size:11px;color:var(--text3)">獲得確率</div>
+              <div style="font-size:22px;font-weight:700;color:var(--blue-b)" id="confirmWinProb">—</div>
+            </div>
+            <div style="background:var(--bg2);border-radius:8px;padding:10px;text-align:center">
+              <div style="font-size:11px;color:var(--text3)">実時給（AI活用後）</div>
+              <div style="font-size:18px;font-weight:700;color:var(--amber)" id="confirmHourly">—</div>
+            </div>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">✍️ 提案文（編集可）</div>
+          <textarea class="form-input" id="confirmProposalText" style="min-height:200px;font-size:12px;line-height:1.7"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="applyConfirmReject()">⏭ スキップ</button>
+          <button class="btn btn-primary" onclick="applyConfirmApprove()">📤 この提案文で応募する</button>
+        </div>
+      </div>
+    </div>
+
   <script>
     // ════════════════════════════════════════
     // STATE MANAGEMENT
@@ -443,6 +495,8 @@
         scanTimer: null,
         config: {
               apiKey: '', cwSession: '', interval: 15, model: 'claude-opus-4-6',
+              serverUrl: 'http://localhost:3456',
+              profile: '',
               autoApply: true, autoWork: true, autoDeliver: true
         }
     };
@@ -469,6 +523,8 @@
         setVal('cfg-cw-session', c.cwSession);
         setVal('cfg-interval', c.interval);
         setVal('cfg-model', c.model);
+        setVal('cfg-server-url', c.serverUrl || 'http://localhost:3456');
+        setVal('cfg-profile', c.profile || '');
     }
 
     function loadState() {
@@ -583,15 +639,37 @@
         showAiThinking('CrowdWorksから案件を取得中...');
 
         try {
-              await sleep(2000); // スキャン時間をシミュレート
+              const keywords = ['AI Claude', 'ChatGPT 自動化', 'Python AI', 'LLM 開発'];
+              let rawJobs = [];
 
-              // シミュレーション案件を生成
-              const mockJobs = generateMockJobs();
+              // 実スキャン（server.js が起動していれば）
+              try {
+                    if (window.CrowdWorksFetcher) {
+                          rawJobs = await CrowdWorksFetcher.fetchJobs(keywords);
+                    } else {
+                          throw new Error('CrowdWorksFetcher 未ロード');
+                    }
+              } catch (fetchErr) {
+                    log('WARN', `実スキャン失敗: ${fetchErr.message} — モック案件を使用`);
+                    rawJobs = generateMockJobs();
+              }
+
+              // フィルタリング（週18時間・時給3000円基準）
+              const filtered = window.CrowdWorksFetcher
+                    ? CrowdWorksFetcher.filterJobs(rawJobs, { minHourly: 3000, maxWeeklyHours: 18 })
+                    : rawJobs;
+
               let newCount = 0;
-
-              for (const job of mockJobs) {
+              for (const job of filtered) {
                       if (!state.jobs.find(j => j.id === job.id)) {
-                                state.jobs.push({ ...job, status: 'scanned', scannedAt: new Date().toISOString() });
+                                const aiScore = window.CrowdWorksFetcher
+                                      ? CrowdWorksFetcher.scoreAiUtilization(job) : 50;
+                                state.jobs.push({
+                                      ...job,
+                                      status: 'scanned',
+                                      scannedAt: new Date().toISOString(),
+                                      aiScore
+                                });
                                 newCount++;
                       }
               }
@@ -628,28 +706,147 @@
         }));
     }
 
+    // ── 応募確認モーダルの Promise ハンドラ ──
+    let _applyResolve = null;
+
+    function showApplyConfirmModal(job, proposalText, evaluation) {
+        return new Promise(function (resolve) {
+              _applyResolve = resolve;
+
+              document.getElementById('confirmJobTitle').textContent = job.title;
+              document.getElementById('confirmJobMeta').textContent =
+                    `¥${(job.budget_max || 0).toLocaleString()} / 推定${job.estimated_hours || '?'}h / AI活用スコア: ${job.aiScore || '?'}`;
+
+              if (evaluation) {
+                    document.getElementById('confirmScore').textContent = evaluation.score + '/100';
+                    document.getElementById('confirmWinProb').textContent = (evaluation.win_probability || '?') + '%';
+                    document.getElementById('confirmHourly').textContent =
+                          '¥' + (evaluation.hourly_rate_actual || 0).toLocaleString() + '/h';
+              } else {
+                    document.getElementById('confirmScore').textContent = '—';
+                    document.getElementById('confirmWinProb').textContent = '—';
+                    document.getElementById('confirmHourly').textContent = '—';
+              }
+
+              document.getElementById('confirmProposalText').value = proposalText || '';
+              document.getElementById('applyConfirmModal').classList.add('open');
+        });
+    }
+
+    function applyConfirmApprove() {
+        const text = document.getElementById('confirmProposalText').value;
+        document.getElementById('applyConfirmModal').classList.remove('open');
+        if (_applyResolve) { _applyResolve({ confirmed: true, proposalText: text }); _applyResolve = null; }
+    }
+
+    function applyConfirmReject() {
+        document.getElementById('applyConfirmModal').classList.remove('open');
+        if (_applyResolve) { _applyResolve({ confirmed: false }); _applyResolve = null; }
+    }
+
     async function processJobs() {
         const scannedJobs = state.jobs.filter(j => j.status === 'scanned');
+        const serverUrl = state.config.serverUrl || 'http://localhost:3456';
 
-        for (const job of scannedJobs.slice(0, 2)) { // 最大2件処理
+        for (const job of scannedJobs.slice(0, 2)) {
               if (state.agentStatus !== 'running') break;
 
-              showAiThinking(`「${job.title}」をAIが評価中...`);
-              await sleep(1500);
+              const shortTitle = job.title ? job.title.slice(0, 24) + '…' : '(案件)';
+              showAiThinking(`「${shortTitle}」をAIが評価中...`);
 
-              // 70%の確率で応募
-              if (Math.random() > 0.3 && state.config.autoApply) {
-                      job.status = 'applied';
-                      job.appliedAt = new Date().toISOString();
-                      state.stats.applied++;
-                      state.stats.todayApplied++;
-                      state.stats.totalApplied++;
-                      log('OK', `応募完了: ${job.title} (¥${job.price.toLocaleString()})`);
-              } else {
-                      job.status = 'skipped';
-                      job.skipReason = '条件不一致またはスキップ';
-                      log('INFO', `スキップ: ${job.title}`);
+              let evaluation = null;
+
+              // Claude 評価
+              try {
+                    if (window.ClaudeEvaluator && state.config.apiKey) {
+                          evaluation = await ClaudeEvaluator.evaluateJob(job, state.config.apiKey);
+                          job.evaluation = evaluation;
+                          log('AI', `評価: ${shortTitle} — スコア ${evaluation.score}/100 推奨:${evaluation.recommendation}`);
+                    }
+              } catch (evalErr) {
+                    log('WARN', `Claude評価エラー: ${evalErr.message}`);
               }
+
+              // 応募判定
+              const shouldApply = evaluation
+                    ? (evaluation.recommendation === 'apply' && evaluation.score >= 65)
+                    : (Math.random() > 0.3);
+
+              if (shouldApply && state.config.autoApply) {
+
+                    if (state.config.cwSession && window.AutoSubmitter && window.ClaudeEvaluator) {
+                          // 実応募フロー
+                          try {
+                                showAiThinking(`「${shortTitle}」の提案文を生成中...`);
+
+                                const profile = { summary: state.config.profile || undefined };
+                                const proposalText = await ClaudeEvaluator.generateProposal(
+                                      job, profile, 'technical', state.config.apiKey
+                                );
+
+                                hideAiThinking();
+
+                                // 確認モーダルを表示
+                                const answer = await showApplyConfirmModal(job, proposalText, evaluation);
+
+                                if (answer.confirmed) {
+                                      showAiThinking('CrowdWorksへ応募送信中...');
+                                      try {
+                                            const result = await AutoSubmitter.submitApplication(
+                                                  job.id, answer.proposalText, job.budget_max, state.config.cwSession
+                                            );
+                                            if (result.success) {
+                                                  job.status = 'applied';
+                                                  job.appliedAt = new Date().toISOString();
+                                                  job.proposalText = answer.proposalText;
+                                                  state.stats.applied++;
+                                                  state.stats.todayApplied++;
+                                                  state.stats.totalApplied++;
+                                                  log('OK', `✅ 実応募完了: ${shortTitle} ¥${(job.budget_max || 0).toLocaleString()}`);
+                                            } else {
+                                                  job.status = 'skipped';
+                                                  job.skipReason = result.message;
+                                                  log('WARN', `応募結果: ${result.message}`);
+                                            }
+                                      } catch (applyErr) {
+                                            log('ERR', `応募送信失敗: ${applyErr.message}`);
+                                            job.status = 'skipped';
+                                            job.skipReason = applyErr.message;
+                                      }
+                                } else {
+                                      job.status = 'skipped';
+                                      job.skipReason = '手動スキップ';
+                                      log('INFO', `スキップ（手動）: ${shortTitle}`);
+                                }
+
+                          } catch (proposalErr) {
+                                log('WARN', `提案文生成エラー: ${proposalErr.message} — スキップ`);
+                                job.status = 'skipped';
+                                job.skipReason = proposalErr.message;
+                          }
+
+                    } else {
+                          // セッション未設定 or モジュール未ロード → ログ記録のみ
+                          job.status = 'applied';
+                          job.appliedAt = new Date().toISOString();
+                          state.stats.applied++;
+                          state.stats.todayApplied++;
+                          state.stats.totalApplied++;
+                          const note = !state.config.cwSession ? '（CWセッション未設定 — ログのみ）' : '';
+                          log('OK', `応募完了${note}: ${shortTitle} ¥${(job.budget_max || job.price || 0).toLocaleString()}`);
+                    }
+
+              } else if (evaluation && evaluation.recommendation === 'watch') {
+                    job.status = 'watching';
+                    log('INFO', `ウォッチ: ${shortTitle}`);
+              } else {
+                    job.status = 'skipped';
+                    job.skipReason = evaluation?.key_reasons?.[0] || '条件不一致';
+                    log('INFO', `スキップ: ${shortTitle} (${job.skipReason})`);
+              }
+
+              renderAll();
+              await sleep(300);
         }
 
         hideAiThinking();
@@ -664,15 +861,16 @@
                       if (state.config.autoWork) {
                                 job.status = 'delivered';
                                 job.deliveredAt = new Date().toISOString();
-                                state.stats.earnings += job.price;
+                                const income = job.budget_max || job.price || 0;
+                                state.stats.earnings += income;
                                 state.stats.completedCount++;
                                 state.earnings.push({ ...job, completedAt: new Date().toLocaleString('ja-JP') });
-                                log('OK', `✅ 作業完了・納品: ${job.title} (¥${job.price.toLocaleString()})`);
+                                log('OK', `✅ 作業完了・納品: ${job.title} (¥${income.toLocaleString()})`);
 
                                 // ブラウザ通知
                                 if ('Notification' in window && Notification.permission === 'granted') {
-                                            new Notification('CW Agent', { 
-                                                          body: `✅ 納品完了: ${job.title} — ¥${job.price.toLocaleString()} 獲得`,
+                                            new Notification('CW Agent', {
+                                                          body: `✅ 納品完了: ${job.title} — ¥${income.toLocaleString()} 獲得`,
                                                           icon: '🤖'
                                             });
                                 }
@@ -718,6 +916,8 @@
         state.config.cwSession = getVal('cfg-cw-session');
         state.config.interval = parseInt(getVal('cfg-interval')) || 15;
         state.config.model = getVal('cfg-model');
+        state.config.serverUrl = getVal('cfg-server-url') || 'http://localhost:3456';
+        state.config.profile = getVal('cfg-profile');
         localStorage.setItem('cw-agent-config', JSON.stringify(state.config));
         log('OK', '設定を保存しました');
         showToast('設定を保存しました ✅');
@@ -740,6 +940,152 @@
               hideAiThinking();
         }
     }
+
+    async function testCwScan() {
+        log('INFO', 'CWスキャンテスト開始...');
+        showAiThinking('CrowdWorksから案件を取得中...');
+        try {
+              if (!window.CrowdWorksFetcher) throw new Error('crowdworks-live.js が読み込まれていません');
+              const jobs = await CrowdWorksFetcher.fetchJobs(['AI Claude', 'ChatGPT']);
+              const filtered = CrowdWorksFetcher.filterJobs(jobs, { minHourly: 3000, maxWeeklyHours: 18 });
+              log('OK', `スキャン成功: ${jobs.length}件取得 → フィルター後${filtered.length}件`);
+              filtered.slice(0, 3).forEach(function(j) {
+                    log('INFO', `  • ${j.title} — ¥${(j.budget_max||0).toLocaleString()} (AI活用スコア:${CrowdWorksFetcher.scoreAiUtilization(j)})`);
+              });
+              showToast(`CWスキャン成功: ${filtered.length}件取得 ✅`);
+        } catch(e) {
+              log('ERR', `CWスキャンテスト失敗: ${e.message}`);
+              showToast('CWスキャン失敗 ❌ ' + e.message);
+        } finally {
+              hideAiThinking();
+        }
+    }
+
+    // ════════════════════════════════════════
+    // UI HELPERS
+    // ════════════════════════════════════════
+    function log(level, msg) {
+        const now = new Date();
+        const time = now.toTimeString().slice(0, 8);
+        const lvl = level.toLowerCase();
+        const entry = { time, level: lvl, msg };
+        state.logs.unshift(entry);
+        if (state.logs.length > 500) state.logs.length = 500;
+
+        const html = `<div class="log-entry">
+            <span class="log-time">${time}</span>
+            <span class="log-level ${lvl}">${level}</span>
+            <span class="log-msg">${escHtml(msg)}</span>
+        </div>`;
+
+        ['dashLog', 'fullLog'].forEach(function (id) {
+              const el = document.getElementById(id);
+              if (!el) return;
+              el.insertAdjacentHTML('afterbegin', html);
+              // keep max 200 entries in DOM
+              while (el.children.length > 200) el.removeChild(el.lastChild);
+        });
+    }
+
+    function escHtml(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function showAiThinking(msg) {
+        const el = document.getElementById('aiThinking');
+        const txt = document.getElementById('aiThinkingText');
+        if (el) el.style.display = 'flex';
+        if (txt) txt.textContent = msg || 'AIが処理中...';
+    }
+
+    function hideAiThinking() {
+        const el = document.getElementById('aiThinking');
+        if (el) el.style.display = 'none';
+    }
+
+    function showToast(msg) {
+        let t = document.getElementById('cwToast');
+        if (!t) {
+              t = document.createElement('div');
+              t.id = 'cwToast';
+              t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px 20px;font-size:13px;color:var(--text);z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.5);transition:opacity .3s';
+              document.body.appendChild(t);
+        }
+        t.textContent = msg;
+        t.style.opacity = '1';
+        clearTimeout(t._tid);
+        t._tid = setTimeout(function () { t.style.opacity = '0'; }, 3000);
+    }
+
+    function renderAll() {
+        // Stats
+        setTextById('st-applied',      state.stats.totalApplied || state.stats.applied);
+        setTextById('st-applied-sub',  '今日 ' + (state.stats.todayApplied || 0) + '件');
+        setTextById('st-active',       state.stats.active);
+        setTextById('st-earnings',     '¥' + (state.stats.earnings || 0).toLocaleString('ja-JP'));
+        setTextById('st-earnings-sub', '完了 ' + (state.stats.completedCount || 0) + '件');
+        setTextById('st-pending',      state.stats.pending || state.notifications.length);
+
+        // Pipeline columns
+        const scanned   = state.jobs.filter(function(j){ return j.status === 'scanned' || j.status === 'watching'; });
+        const applied   = state.jobs.filter(function(j){ return j.status === 'applied'; });
+        const working   = state.jobs.filter(function(j){ return j.status === 'working' || j.status === 'inprogress'; });
+        const done      = state.jobs.filter(function(j){ return j.status === 'delivered' || j.status === 'completed'; });
+
+        setTextById('cnt-scan',    scanned.length);
+        setTextById('cnt-applied', applied.length);
+        setTextById('cnt-working', working.length);
+        setTextById('cnt-done',    done.length);
+
+        renderJobCol('col-scan',    scanned,  'tag-blue');
+        renderJobCol('col-applied', applied,  'tag-amber');
+        renderJobCol('col-working', working,  'tag-teal');
+        renderJobCol('col-done',    done,     'tag-green');
+
+        // Pipeline badge in nav
+        const active = scanned.length + applied.length;
+        const pBadge = document.getElementById('pipelineBadge');
+        if (pBadge) { pBadge.textContent = active; pBadge.className = 'nav-cnt' + (active > 0 ? ' show' : ''); }
+
+        // Notifications badge
+        const pending = state.notifications.filter(function(n){ return !n.resolved; }).length;
+        const nbRed = document.getElementById('notifBadge');
+        const nbNav = document.getElementById('notifNavBadge');
+        if (nbRed) { nbRed.textContent = pending; nbRed.className = 'badge-red' + (pending > 0 ? ' show' : ''); }
+        if (nbNav) { nbNav.textContent = pending; nbNav.className = 'nav-cnt' + (pending > 0 ? ' show' : ''); }
+    }
+
+    function setTextById(id, val) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    }
+
+    function renderJobCol(colId, jobs, tagClass) {
+        const el = document.getElementById(colId);
+        if (!el) return;
+        if (jobs.length === 0) {
+              el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div>案件なし</div>';
+              return;
+        }
+        el.innerHTML = jobs.slice(0, 10).map(function(j) {
+              const budget = j.budget_max || j.price || 0;
+              const score  = j.evaluation ? j.evaluation.score : (j.aiScore || '');
+              const scoreTag = score !== '' ? `<span class="tag ${tagClass}">${score}点</span>` : '';
+              return `<div class="job-card" onclick="window.open('${escHtml(j.url || '')}','_blank')" title="${escHtml(j.title)}">
+                <div class="jc-title">${escHtml((j.title || '').slice(0, 36))}${j.title && j.title.length > 36 ? '…' : ''}</div>
+                <div class="jc-meta">
+                  <span class="tag tag-gray">¥${budget.toLocaleString()}</span>
+                  ${scoreTag}
+                  ${j.keyword ? `<span class="tag tag-blue">${escHtml(j.keyword)}</span>` : ''}
+                </div>
+              </div>`;
+        }).join('');
+    }
+
+    // ════════════════════════════════════════
+    // BOOT
+    // ════════════════════════════════════════
+    window.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>

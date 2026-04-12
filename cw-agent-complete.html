@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CW-Agent | 完全自動化システム - 月収100万円達成</title>
+    <style>
+        :root {
+            --primary-bg: #0a0a0a;
+            --secondary-bg: #1a1a1a;
+            --accent-bg: #2a2a2a;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --primary: #3b82f6;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border: #374151;
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: var(--secondary-bg);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .status-inactive {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--warning);
+            color: var(--warning);
+        }
+
+        /* Main Layout */
+        .container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: calc(100vh - 80px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--secondary-bg);
+            border-right: 1px solid var(--border);
+            padding: 30px 0;
+        }
+
+        .nav-section {
+            margin-bottom: 30px;
+        }
+
+        .nav-title {
+            padding: 0 30px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 30px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary);
+            border-left-color: var(--primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 30px 40px;
+            background: var(--primary-bg);
+        }
+
+        /* Automation Control Panel */
+        .automation-panel {
+            background: var(--secondary-bg);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+        }
+
+        .automation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .automation-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .automation-controls {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: white;
+        }
+
+        /* Settings Panel */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .setting-group {
+            background: var(--accent-bg);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .setting-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .setting-input {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .setting-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Automation Log */
+        .automation-log {
+            background: var(--accent-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .log-content {
+            background: var(--primary-bg);
+            border-radius: 8px;
+            padding: 16px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            margin-top: 12px;
+        }
+
+        .log-content div {
+            margin-bottom: 4px;
+        }
+
+        /* Real-time Jobs Feed */
+        .jobs-feed {
+            background: var(--secondary-bg);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+        }
+
+        .feed-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .feed-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .refresh-btn {
+            padding: 8px 16px;
+            background: var(--accent-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .refresh-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .job-card {
+            background: var(--accent-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+
+        .job-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .job-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .job-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        .job-description {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .job-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .job-scores {
+            display: flex;
+            gap: 12px;
+        }
+
+        .score-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .score-high {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+        }
+
+        .score-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+
+        .score-low {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--error);
+        }
+
+        .job-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-evaluate {
+            background: var(--primary);
+            color: white;
+        }
+
+        .action-apply {
+            background: var(--success);
+            color: white;
+        }
+
+        /* Stats Dashboard */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--secondary-bg);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .stat-icon {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        /* Loading States */
+        .loading {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border);
+            border-top: 2px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Proposal Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--secondary-bg);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .proposal-content {
+            background: var(--accent-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                padding: 15px 20px;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">🤖</div>
+            <div class="logo-text">CW-Agent Pro</div>
+        </div>
+        <div id="automation-status" class="status-indicator status-inactive">
+            <span class="status-dot">●</span>
+            <span>自動化停止中</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <nav>
+                <div class="nav-section">
+                    <div class="nav-title">自動化</div>
+                    <a href="#automation" class="nav-item active" data-tab="automation">
+                        🚀 完全自動化
+                    </a>
+                    <a href="#jobs" class="nav-item" data-tab="jobs">
+                        📊 リアルタイム案件
+                    </a>
+                    <a href="#applications" class="nav-item" data-tab="applications">
+                        📤 応募管理
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-title">分析</div>
+                    <a href="#analytics" class="nav-item" data-tab="analytics">
+                        📈 収益分析
+                    </a>
+                    <a href="#performance" class="nav-item" data-tab="performance">
+                        ⚡ パフォーマンス
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-title">設定</div>
+                    <a href="#settings" class="nav-item" data-tab="settings">
+                        ⚙️ システム設定
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Automation Tab -->
+            <div id="tab-automation" class="tab-content">
+                <!-- Automation Control Panel -->
+                <div class="automation-panel">
+                    <div class="automation-header">
+                        <h2 class="automation-title">
+                            🤖 完全自動化システム
+                        </h2>
+                        <div class="automation-controls">
+                            <button id="start-automation" class="btn btn-success">
+                                ▶️ 自動化開始
+                            </button>
+                            <button id="stop-automation" class="btn btn-danger" style="display:none;">
+                                ⏹️ 停止
+                            </button>
+                            <button id="manual-scan" class="btn btn-primary">
+                                🔍 手動スキャン
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Settings Grid -->
+                    <div class="settings-grid">
+                        <div class="setting-group">
+                            <label class="setting-label">Claude APIキー</label>
+                            <input type="password" id="claude-api-key" class="setting-input" 
+                                   placeholder="sk-ant-api03-...">
+                        </div>
+                        <div class="setting-group">
+                            <label class="setting-label">実行スケジュール</label>
+                            <select id="schedule" class="setting-input">
+                                <option value="0 9 * * *">毎日 9:00</option>
+                                <option value="0 9,13,17 * * *">9:00, 13:00, 17:00</option>
+                                <option value="0 */2 * * *">2時間ごと</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label class="setting-label">最低AI案件スコア</label>
+                            <input type="range" id="min-score" class="setting-input" 
+                                   min="50" max="100" value="70">
+                            <span id="score-display">70点</span>
+                        </div>
+                        <div class="setting-group">
+                            <label class="setting-label">1日最大応募数</label>
+                            <input type="number" id="max-applications" class="setting-input" 
+                                   value="5" min="1" max="20">
+                        </div>
+                    </div>
+
+                    <!-- Status Display -->
+                    <div id="automation-log" class="automation-log">
+                        <h3>📋 実行ログ</h3>
+                        <div id="log-content" class="log-content">
+                            システム待機中...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Dashboard -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-value" id="today-scanned">0</div>
+                        <div class="stat-label">今日スキャンした案件</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🤖</div>
+                        <div class="stat-value" id="ai-evaluated">0</div>
+                        <div class="stat-label">AI評価済み案件</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📤</div>
+                        <div class="stat-value" id="auto-applied">0</div>
+                        <div class="stat-label">自動応募済み</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-value" id="estimated-value">¥0</div>
+                        <div class="stat-label">推定応募価値</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jobs Tab -->
+            <div id="tab-jobs" class="tab-content" style="display: none;">
+                <div class="jobs-feed">
+                    <div class="feed-header">
+                        <h2 class="feed-title">
+                            📊 リアルタイム案件フィード
+                            <div class="loading" id="jobs-loading" style="display: none;">
+                                <div class="spinner"></div>
+                                <span>検索中...</span>
+                            </div>
+                        </h2>
+                        <button id="refresh-jobs" class="refresh-btn">
+                            🔄 更新
+                        </button>
+                    </div>
+                    <div id="jobs-container">
+                        <p style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                            「🔄 更新」をクリックして最新の案件を取得してください
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Applications Tab -->
+            <div id="tab-applications" class="tab-content" style="display: none;">
+                <div class="jobs-feed">
+                    <h2 class="feed-title">📤 応募管理</h2>
+                    <div id="applications-container">
+                        <p style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                            応募履歴がここに表示されます
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="tab-analytics" class="tab-content" style="display: none;">
+                <div class="automation-panel">
+                    <h2 class="automation-title">📈 収益分析</h2>
+                    <p style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                        収益分析機能は実装中です
+                    </p>
+                </div>
+            </div>
+
+            <!-- Performance Tab -->
+            <div id="tab-performance" class="tab-content" style="display: none;">
+                <div class="automation-panel">
+                    <h2 class="automation-title">⚡ パフォーマンス</h2>
+                    <p style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                        パフォーマンス監視機能は実装中です
+                    </p>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="tab-settings" class="tab-content" style="display: none;">
+                <div class="automation-panel">
+                    <h2 class="automation-title">⚙️ システム設定</h2>
+                    <p style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                        詳細設定機能は実装中です
+                    </p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Proposal Modal -->
+    <div id="proposal-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">応募文プレビュー</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div id="proposal-content" class="proposal-content"></div>
+            <div class="modal-actions">
+                <button id="apply-job" class="btn btn-success">応募実行</button>
+                <button id="edit-proposal" class="btn btn-primary">編集</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===============================================
+        // 完全自動化システム - フロントエンド
+        // ===============================================
+
+        class CWAgentAutomation {
+            constructor() {
+                this.isAutomationRunning = false;
+                this.currentJobs = [];
+                this.stats = {
+                    todayScanned: 0,
+                    aiEvaluated: 0,
+                    autoApplied: 0,
+                    estimatedValue: 0
+                };
+                
+                this.initialize();
+            }
+
+            initialize() {
+                this.setupEventListeners();
+                this.loadSettings();
+                this.updateUI();
+                this.checkServerHealth();
+            }
+
+            setupEventListeners() {
+                // Tab navigation
+                document.querySelectorAll('[data-tab]').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.switchTab(e.target.dataset.tab);
+                    });
+                });
+
+                // Automation controls
+                document.getElementById('start-automation').addEventListener('click', () => {
+                    this.startAutomation();
+                });
+
+                document.getElementById('stop-automation').addEventListener('click', () => {
+                    this.stopAutomation();
+                });
+
+                document.getElementById('manual-scan').addEventListener('click', () => {
+                    this.manualJobScan();
+                });
+
+                document.getElementById('refresh-jobs').addEventListener('click', () => {
+                    this.refreshJobs();
+                });
+
+                // Settings
+                document.getElementById('min-score').addEventListener('input', (e) => {
+                    document.getElementById('score-display').textContent = e.target.value + '点';
+                });
+
+                // Modal controls
+                const closeBtn = document.querySelector('.close-btn');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        document.getElementById('proposal-modal').style.display = 'none';
+                    });
+                }
+
+                // Auto-save settings
+                ['claude-api-key', 'schedule', 'min-score', 'max-applications'].forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.addEventListener('change', () => this.saveSettings());
+                    }
+                });
+            }
+
+            switchTab(tabName) {
+                // Update nav
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+                // Update content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.style.display = 'none';
+                });
+                document.getElementById(`tab-${tabName}`).style.display = 'block';
+            }
+
+            async checkServerHealth() {
+                try {
+                    const response = await fetch('/api/health');
+                    const result = await response.json();
+                    
+                    if (result.status === 'ok') {
+                        this.logMessage('✅ サーバー接続確認完了');
+                    }
+                } catch (error) {
+                    this.logMessage('❌ サーバー接続エラー: ' + error.message);
+                }
+            }
+
+            async startAutomation() {
+                const apiKey = document.getElementById('claude-api-key').value;
+                if (!apiKey) {
+                    alert('Claude APIキーを入力してください');
+                    return;
+                }
+
+                try {
+                    this.isAutomationRunning = true;
+                    this.updateAutomationStatus();
+                    this.logMessage('🚀 自動化システムを開始しています...');
+
+                    const response = await fetch('/api/start-scheduler', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ apiKey })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.logMessage('✅ 自動化システムが開始されました');
+                        this.logMessage('📅 毎日の自動実行がスケジュールされました');
+                        this.logMessage('🎯 AI案件の自動検索・評価・応募を開始します');
+                    } else {
+                        throw new Error(result.error);
+                    }
+
+                } catch (error) {
+                    this.logMessage(`❌ 自動化開始エラー: ${error.message}`);
+                    this.isAutomationRunning = false;
+                    this.updateAutomationStatus();
+                }
+            }
+
+            stopAutomation() {
+                this.isAutomationRunning = false;
+                this.updateAutomationStatus();
+                this.logMessage('⏹️ 自動化システムを停止しました');
+            }
+
+            async manualJobScan() {
+                const loadingEl = document.getElementById('jobs-loading');
+                if (loadingEl) loadingEl.style.display = 'flex';
+                
+                try {
+                    this.logMessage('🔍 手動案件スキャンを開始...');
+                    
+                    const response = await fetch('/api/search-jobs', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            keywords: ['AI', 'ChatGPT', 'Claude', '自動化', 'Python']
+                        })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.currentJobs = result.jobs;
+                        this.stats.todayScanned += result.count;
+                        this.updateStats();
+                        this.displayJobs(result.jobs);
+                        this.logMessage(`✅ ${result.count}件の案件を取得しました`);
+                        
+                        // Switch to jobs tab automatically
+                        this.switchTab('jobs');
+                    } else {
+                        throw new Error(result.error);
+                    }
+
+                } catch (error) {
+                    this.logMessage(`❌ スキャンエラー: ${error.message}`);
+                } finally {
+                    if (loadingEl) loadingEl.style.display = 'none';
+                }
+            }
+
+            async refreshJobs() {
+                await this.manualJobScan();
+            }
+
+            displayJobs(jobs) {
+                const container = document.getElementById('jobs-container');
+                if (!container) return;
+
+                container.innerHTML = '';
+
+                if (jobs.length === 0) {
+                    container.innerHTML = `
+                        <p style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                            該当する案件が見つかりませんでした
+                        </p>
+                    `;
+                    return;
+                }
+
+                jobs.forEach((job, index) => {
+                    const jobCard = this.createJobCard(job, index);
+                    container.appendChild(jobCard);
+                });
+            }
+
+            createJobCard(job, index) {
+                const card = document.createElement('div');
+                card.className = 'job-card';
+                
+                const scoreClass = job.aiScore >= 80 ? 'score-high' : 
+                                 job.aiScore >= 60 ? 'score-medium' : 'score-low';
+
+                card.innerHTML = `
+                    <div class="job-header">
+                        <div>
+                            <div class="job-title">${job.title}</div>
+                            <div class="job-price">${job.price}</div>
+                        </div>
+                    </div>
+                    <div class="job-description">${job.description.substring(0, 150)}...</div>
+                    <div class="job-meta">
+                        <div class="job-scores">
+                            <span class="score-badge ${scoreClass}">
+                                AI: ${job.aiScore}%
+                            </span>
+                            <span class="score-badge score-medium">
+                                納品: ${job.deliverabilityScore}%
+                            </span>
+                            <span class="score-badge score-medium">
+                                ${job.estimatedHours}h
+                            </span>
+                        </div>
+                        <div class="job-actions">
+                            <button class="action-btn action-evaluate" onclick="cwAgent.evaluateJob(${index})">
+                                🤖 AI評価
+                            </button>
+                            <button class="action-btn action-apply" onclick="cwAgent.showProposal(${index})">
+                                📝 応募文
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                return card;
+            }
+
+            async evaluateJob(jobIndex) {
+                try {
+                    const job = this.currentJobs[jobIndex];
+                    if (!job) return;
+
+                    this.logMessage(`🤖 "${job.title}"をAI評価中...`);
+
+                    const apiKey = document.getElementById('claude-api-key').value;
+                    if (!apiKey) {
+                        alert('Claude APIキーを設定してください');
+                        return;
+                    }
+
+                    const response = await fetch('/api/evaluate-job', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ job, apiKey })
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.stats.aiEvaluated++;
+                        this.stats.estimatedValue += result.evaluation.recommendedBid;
+                        this.updateStats();
+                        
+                        // Store evaluation
+                        job.evaluation = result.evaluation;
+                        job.proposal = result.proposal;
+                        
+                        this.logMessage(`✅ AI評価完了: スコア ${result.evaluation.overallScore}/100`);
+                        this.logMessage(`💰 推奨応募価格: ¥${result.evaluation.recommendedBid.toLocaleString()}`);
+                    } else {
+                        throw new Error(result.error);
+                    }
+
+                } catch (error) {
+                    this.logMessage(`❌ AI評価エラー: ${error.message}`);
+                }
+            }
+
+            showProposal(jobIndex) {
+                const job = this.currentJobs[jobIndex];
+                if (!job || !job.proposal) {
+                    alert('まずAI評価を実行してください');
+                    return;
+                }
+
+                const proposalContent = document.getElementById('proposal-content');
+                const modal = document.getElementById('proposal-modal');
+                
+                if (proposalContent && modal) {
+                    proposalContent.textContent = job.proposal;
+                    modal.style.display = 'flex';
+                    
+                    // Store current job for apply action
+                    this.currentProposalJob = job;
+                }
+            }
+
+            updateAutomationStatus() {
+                const statusEl = document.getElementById('automation-status');
+                const startBtn = document.getElementById('start-automation');
+                const stopBtn = document.getElementById('stop-automation');
+
+                if (this.isAutomationRunning) {
+                    statusEl.className = 'status-indicator status-active';
+                    statusEl.innerHTML = '<span class="status-dot">●</span><span>自動化実行中</span>';
+                    startBtn.style.display = 'none';
+                    stopBtn.style.display = 'inline-flex';
+                } else {
+                    statusEl.className = 'status-indicator status-inactive';
+                    statusEl.innerHTML = '<span class="status-dot">●</span><span>自動化停止中</span>';
+                    startBtn.style.display = 'inline-flex';
+                    stopBtn.style.display = 'none';
+                }
+            }
+
+            updateStats() {
+                const elements = {
+                    'today-scanned': this.stats.todayScanned,
+                    'ai-evaluated': this.stats.aiEvaluated,
+                    'auto-applied': this.stats.autoApplied,
+                    'estimated-value': '¥' + this.stats.estimatedValue.toLocaleString()
+                };
+
+                for (const [id, value] of Object.entries(elements)) {
+                    const element = document.getElementById(id);
+                    if (element) element.textContent = value;
+                }
+            }
+
+            logMessage(message) {
+                const logContent = document.getElementById('log-content');
+                if (!logContent) return;
+
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.innerHTML = `<span style="color: var(--text-secondary)">[${timestamp}]</span> ${message}`;
+                logContent.appendChild(logEntry);
+                logContent.scrollTop = logContent.scrollHeight;
+            }
+
+            loadSettings() {
+                try {
+                    const settings = localStorage.getItem('cwagent-settings');
+                    if (settings) {
+                        const parsed = JSON.parse(settings);
+                        
+                        // Apply settings to form
+                        for (const [key, value] of Object.entries(parsed)) {
+                            const element = document.getElementById(key);
+                            if (element) element.value = value;
+                        }
+
+                        // Update score display
+                        const scoreElement = document.getElementById('min-score');
+                        const scoreDisplay = document.getElementById('score-display');
+                        if (scoreElement && scoreDisplay) {
+                            scoreDisplay.textContent = scoreElement.value + '点';
+                        }
+                    }
+                } catch (error) {
+                    console.error('設定読み込みエラー:', error);
+                }
+            }
+
+            saveSettings() {
+                try {
+                    const settings = {
+                        'claude-api-key': document.getElementById('claude-api-key').value,
+                        'schedule': document.getElementById('schedule').value,
+                        'min-score': document.getElementById('min-score').value,
+                        'max-applications': document.getElementById('max-applications').value
+                    };
+                    localStorage.setItem('cwagent-settings', JSON.stringify(settings));
+                } catch (error) {
+                    console.error('設定保存エラー:', error);
+                }
+            }
+
+            updateUI() {
+                this.updateAutomationStatus();
+                this.updateStats();
+            }
+        }
+
+        // ===============================================
+        // Initialize Application
+        // ===============================================
+
+        window.cwAgent = new CWAgentAutomation();
+
+        // Add some initial log messages
+        setTimeout(() => {
+            cwAgent.logMessage('🤖 CW-Agent完全自動化システム準備完了');
+            cwAgent.logMessage('💡 Claude APIキーを設定して自動化を開始してください');
+            cwAgent.logMessage('📊 手動スキャンで動作をテストできます');
+        }, 1000);
+    </script>
+</body>
+</html>

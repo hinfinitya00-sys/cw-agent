@@ -6,10 +6,18 @@
 import Anthropic from '@anthropic-ai/sdk';
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = path.dirname(__filename);
 
 const app = express();
 app.use(cors({ origin: '*' }));
 app.use(express.json({ limit: '2mb' }));
+
+// 静的ファイル配信（css/ js/ config/ など）
+app.use(express.static(__dirname));
 
 const PORT = process.env.PORT || 3456;
 
@@ -20,6 +28,13 @@ function getClient(apiKey) {
   }
   return new Anthropic({ apiKey: key });
 }
+
+// ─────────────────────────────────────────
+// GET / — ダッシュボード
+// ─────────────────────────────────────────
+app.get('/', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // ─────────────────────────────────────────
 // GET /api/health
@@ -306,6 +321,203 @@ ${summary}
 });
 
 // ─────────────────────────────────────────
+// POST /api/cw/search — CrowdWorks RSS経由で案件取得
+// ─────────────────────────────────────────
+app.post('/api/cw/search', async (req, res) => {
+  const { keywords = ['AI Claude', 'ChatGPT 自動化', 'Python AI'] } = req.body;
+
+  try {
+    const allJobs = [];
+    const seen = new Set();
+
+    for (const kw of keywords.slice(0, 4)) {
+      const url = `https://crowdworks.jp/public/jobs.rss?order=new&keyword=${encodeURIComponent(kw)}`;
+      let xml;
+      try {
+        const resp = await fetch(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/rss+xml,application/xml,text/xml,*/*'
+          },
+          signal: AbortSignal.timeout(10000)
+        });
+        if (!resp.ok) continue;
+        xml = await resp.text();
+      } catch (fetchErr) {
+        console.error(`[/api/cw/search] fetch "${kw}":`, fetchErr.message);
+        continue;
+      }
+
+      const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
+      for (const [, item] of items) {
+        const title = (item.match(/<title><!\[CDATA\[(.*?)\]\]>/)?.[1] ||
+                       item.match(/<title>(.*?)<\/title>/)?.[1] || '').trim();
+        const link  = (item.match(/<link>(https?[^<]*?)<\/link>/)?.[1] ||
+                       item.match(/<link>(.*?)<\/link>/)?.[1] || '').trim();
+        const rawDesc = item.match(/<description><!\[CDATA\[([\s\S]*?)\]\]>/)?.[1] ||
+                        item.match(/<description>([\s\S]*?)<\/description>/)?.[1] || '';
+        const desc  = rawDesc.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 600);
+        const pubDate = (item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] || '').trim();
+
+        const idMatch = link.match(/\/jobs\/(\d+)/);
+        if (!idMatch || seen.has(idMatch[1])) continue;
+        const id = idMatch[1];
+        seen.add(id);
+
+        // Extract budget from description
+        const budgetMatch = desc.match(/(?:予算|報酬)[^\d]*?([\d,]+)\s*円/) ||
+                            desc.match(/([\d,]+)\s*円/);
+        const budget = budgetMatch ? parseInt(budgetMatch[1].replace(/,/g, '')) : 0;
+
+        allJobs.push({
+          id,
+          title,
+          url: link,
+          description: desc,
+          budget_min: Math.round(budget * 0.7),
+          budget_max: budget,
+          estimated_hours: budget > 0 ? Math.max(1, Math.round(budget / 4000)) : 5,
+          category: 'AI・機械学習',
+          pubDate,
+          keyword: kw
+        });
+      }
+    }
+
+    res.json({ success: true, jobs: allJobs.slice(0, 40), count: allJobs.length });
+  } catch (err) {
+    console.error('[/api/cw/search]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─────────────────────────────────────────
+// GET /api/cw/job/:id — 案件詳細ページ取得
+// ─────────────────────────────────────────
+app.get('/api/cw/job/:id', async (req, res) => {
+  const { id } = req.params;
+  const session = req.headers['x-cw-session'] || '';
+
+  try {
+    const headers = {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml',
+      'Accept-Language': 'ja,en-US;q=0.9'
+    };
+    if (session) headers['Cookie'] = session;
+
+    const resp = await fetch(`https://crowdworks.jp/public/jobs/${id}`, {
+      headers,
+      signal: AbortSignal.timeout(12000)
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const html = await resp.text();
+
+    // Extract CSRF token for apply
+    const csrf = html.match(/<meta[^>]+name="csrf-token"[^>]+content="([^"]+)"/)?.[1] || '';
+
+    // Extract title
+    const titleMatch = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/);
+    const title = titleMatch?.[1]?.replace(/<[^>]+>/g, '').trim() || '';
+
+    // Extract description block (best-effort)
+    const descMatch = html.match(/class="[^"]*(?:job_description|offer_description)[^"]*"[^>]*>([\s\S]*?)<\/div>/);
+    const description = descMatch?.[1]?.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 1500) || '';
+
+    res.json({ success: true, id, title, description, csrf });
+  } catch (err) {
+    console.error('[/api/cw/job]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─────────────────────────────────────────
+// POST /api/cw/apply — CrowdWorks応募送信
+// ─────────────────────────────────────────
+app.post('/api/cw/apply', async (req, res) => {
+  const { jobId, proposalText, desiredCost, session } = req.body;
+  if (!jobId || !proposalText) {
+    return res.status(400).json({ error: 'jobId と proposalText が必要です' });
+  }
+  if (!session) {
+    return res.status(400).json({ error: 'CrowdWorksセッションCookieが必要です。設定画面で入力してください。' });
+  }
+
+  try {
+    // Step 1: GET job page → extract CSRF token
+    const pageResp = await fetch(`https://crowdworks.jp/public/jobs/${jobId}`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+        'Accept': 'text/html,application/xhtml+xml',
+        'Cookie': session
+      },
+      signal: AbortSignal.timeout(12000)
+    });
+    if (!pageResp.ok) throw new Error(`案件ページ取得失敗: HTTP ${pageResp.status}`);
+    const html = await pageResp.text();
+
+    const csrfMatch = html.match(/<meta[^>]+name="csrf-token"[^>]+content="([^"]+)"/);
+    const csrf = csrfMatch?.[1];
+    if (!csrf) throw new Error('CSRFトークンの取得に失敗しました。セッションCookieを確認してください。');
+
+    // Step 2: POST application
+    const formData = new URLSearchParams({
+      'authenticity_token': csrf,
+      'job_offer[body]': proposalText,
+      'commit': '提案する'
+    });
+    if (desiredCost) formData.set('job_offer[desired_cost]', String(desiredCost));
+
+    const submitResp = await fetch(`https://crowdworks.jp/public/jobs/${jobId}/job_offers`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+        'Cookie': session,
+        'Origin': 'https://crowdworks.jp',
+        'Referer': `https://crowdworks.jp/public/jobs/${jobId}`,
+        'X-CSRF-Token': csrf
+      },
+      body: formData.toString(),
+      redirect: 'manual',
+      signal: AbortSignal.timeout(15000)
+    });
+
+    // 302 = redirect after success, 200 = form re-shown (possible duplicate or error)
+    if (submitResp.status === 302 || submitResp.status === 303) {
+      const location = submitResp.headers.get('location') || '';
+      res.json({ success: true, message: '応募が完了しました ✅', redirectTo: location });
+    } else if (submitResp.status === 200) {
+      const body = await submitResp.text();
+      // Check if it's a duplicate apply error
+      if (body.includes('既に提案') || body.includes('already')) {
+        res.json({ success: false, message: 'この案件には既に応募済みです。' });
+      } else {
+        res.json({ success: true, message: '応募が完了しました（確認要）', status: 200 });
+      }
+    } else {
+      throw new Error(`応募失敗: HTTP ${submitResp.status}`);
+    }
+  } catch (err) {
+    console.error('[/api/cw/apply]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─────────────────────────────────────────
+// グローバルエラーハンドラー
+// ─────────────────────────────────────────
+app.use((err, _req, res, _next) => {
+  console.error('[UnhandledError]', err.message);
+  res.status(500).json({ error: err.message || 'Internal Server Error' });
+});
+
+// 404
+app.use((_req, res) => {
+  res.status(404).json({ error: 'Not Found' });
+});
+
+// ─────────────────────────────────────────
 // Start
 // ─────────────────────────────────────────
 app.listen(PORT, () => {
@@ -316,5 +528,8 @@ app.listen(PORT, () => {
   console.log('  POST /api/evaluate           — 案件深層評価');
   console.log('  POST /api/generate-proposal  — 提案文生成（SSEストリーミング）');
   console.log('  POST /api/ab-test            — A/B提案文同時生成');
-  console.log('  POST /api/market-analysis    — 市場分析・月収戦略\n');
+  console.log('  POST /api/market-analysis    — 市場分析・月収戦略');
+  console.log('  POST /api/cw/search          — CrowdWorks案件スキャン（RSS）');
+  console.log('  GET  /api/cw/job/:id         — 案件詳細取得');
+  console.log('  POST /api/cw/apply           — CrowdWorks応募送信\n');
 });
