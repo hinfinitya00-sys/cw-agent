@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CW-Agent | 其田さん専用自動化システム</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            line-height: 1.5;
+        }
+        .header {
+            background: #1a1a1a;
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { font-size: 24px; font-weight: bold; color: #00ff88; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px;
+        }
+        .stat-card {
+            background: #1a1a1a;
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            text-align: center;
+        }
+        .stat-number { font-size: 32px; font-weight: bold; margin-bottom: 8px; }
+        .stat-label { color: #888; font-size: 14px; }
+        .revenue { color: #00ff88; }
+        .auto-button {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 20px;
+        }
+        .auto-button:hover { background: #00cc70; }
+        #output {
+            margin: 20px 30px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 13px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">⚡ CW-Agent | 其田さん専用</div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number revenue">¥290,000</div>
+            <div class="stat-label">今月収益</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">29%</div>
+            <div class="stat-label">月収100万円達成率</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">0</div>
+            <div class="stat-label">本日応募件数</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">5</div>
+            <div class="stat-label">本日目標件数</div>
+        </div>
+    </div>
+
+    <div style="text-align: center;">
+        <button class="auto-button" onclick="executeAutoProposal()">
+            📊 案件取得 + 応募文5件生成
+        </button>
+    </div>
+
+    <div id="output"></div>
+
+    <script>
+    async function executeAutoProposal() {
+        const output = document.getElementById('output');
+        output.style.display = 'block';
+        output.textContent = '処理中...';
+        try {
+            const res = await fetch('/api/auto-proposal', { method: 'POST' });
+            const data = await res.json();
+            output.textContent = JSON.stringify(data, null, 2);
+        } catch (e) {
+            output.textContent = 'エラー: ' + e.message;
+        }
+    }
+    </script>
+</body>
+</html>
